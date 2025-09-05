@@ -12,6 +12,15 @@
 
 # Ignore sensitive files
 .env
+.env.*
 
 # local env files
 .env*.local
+
+# Python virtual environment files
+.venv/
+
+# Ignore Python cache files.
+pycache/
+*.pyc
+*.pyo
