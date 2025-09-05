@@ -1,12 +1,26 @@
-*Ignore virtual environment folder.
+# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
 
-.venv/
+# macOS
+.DS_Store
+*.pem
 
-*Ignore Python cache files.
-__pycache__/
-*.pyc
-*.pyo
+# Ignore VS Code config folder
+.vscode/
 
-*Environment files
+# Ignore githooks folder
+.githooks/
+
+# Ignore sensitive files
 .env
 .env.*
+
+# local env files
+.env*.local
+
+# Python virtual environment files
+.venv/
+
+# Ignore Python cache files.
+pycache/
+*.pyc
+*.pyo
