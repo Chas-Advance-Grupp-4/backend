@@ -15,6 +15,8 @@ class UserBase(BaseModel):
     def username_not_empty(cls, value):
         return not_empty("Username", value)
 
+    model_config = {"validate_by_name": True}
+
 class UserCreate(UserBase):
     password: str = Field(...)
     @field_validator("password")

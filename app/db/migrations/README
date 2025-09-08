@@ -1,0 +1,15 @@
+Generic single-database configuration.
+
+# Initialize Alembic / start it in the project and create necessary files/folders (only done once)
+alembic init migrations
+
+# Create a new migration/version. Run this whenever the database schema changes,
+# e.g., when adding or removing tables or columns. 
+# Autogenerate automatically compares the models defined in code with the database.
+alembic revision --autogenerate -m "Descriptive text of what was done"
+
+# Apply the migration and update the database to the latest version
+alembic upgrade head
+
+# Roll back a migration / revert one version (you can also specify a specific migration ID instead of -1 to go to that specifik version/migration.)
+alembic downgrade -1
