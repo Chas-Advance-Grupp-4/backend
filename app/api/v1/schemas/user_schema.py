@@ -1,9 +1,5 @@
-from pydantic import BaseModel, constr, field_validator
+from pydantic import BaseModel, constr, field_validator, Field
 from datetime import datetime
-
-from pydantic import BaseModel, Field
-from datetime import datetime
-
 def not_empty(field_name: str, value: str) -> str:
     if not value.strip():
         raise ValueError(f"{field_name} field empty.")
