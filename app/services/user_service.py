@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from typing import List, Optional
 
 def create_user(db: Session, user: UserCreate) -> User:
-    existing_user=db.query(User).filter(User.username == user.username).one_or_none()
+    existing_user = db.query(User).filter(User.username == user.username).one_or_none()
     if existing_user:
         raise ValueError(f"User with username {user.username} already exists.")
     
