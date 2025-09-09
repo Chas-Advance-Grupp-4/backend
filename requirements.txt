@@ -1,0 +1,5 @@
+#Testing and Linting tools
+black==24.3.0        # Formatting
+flake8==7.1.0        # Linting
+pytest==7.4.0        # Testing framework
+detect-secrets==1.4.0  # Secret detection
