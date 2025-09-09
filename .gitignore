@@ -7,6 +7,9 @@
 # Ignore VS Code config folder
 .vscode/
 
+# Ignore githooks folder
+.githooks/
+
 # Ignore sensitive files
 .env
 .env.*
