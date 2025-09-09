@@ -16,6 +16,7 @@
 
 # Python virtual environment files
 .venv/
+venv/
 
 # Ignore Python cache files.
 pycache/
