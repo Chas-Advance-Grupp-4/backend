@@ -3,6 +3,7 @@ import jwt
 from jwt import PyJWTError
 from app.config.settings import settings
 
+
 def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
     """Creates a JWT access token with user data and expiration."""
     to_encode = data.copy()

@@ -1,10 +1,11 @@
 from sqlalchemy.orm import Session
 from app.models.user_model import User
-from app.utils.hash import verify_password 
+from app.utils.hash import verify_password
 from app.utils.JWT import create_access_token
 from app.services.user_service import get_user_by_username
 from datetime import timedelta
 from app.config.settings import settings
+
 
 def authenticate_user(db: Session, username: str, password: str) -> User | None:
     """
@@ -28,6 +29,3 @@ def create_access_token_for_user(user: User) -> str:
         data={"sub": str(user.id), "role": user.role},
         expires_delta=access_token_expires,
     )
-
-
-

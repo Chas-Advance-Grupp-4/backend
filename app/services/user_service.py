@@ -4,6 +4,7 @@ from app.models.user_model import User
 from sqlalchemy.orm import Session
 from app.utils.hash import get_password_hash
 
+
 def get_user_by_username(db: Session, username: str) -> User | None:
     """Fetches a user from the database based on their username."""
     return db.query(User).filter(User.username == username).first()
@@ -33,6 +34,7 @@ def create_user(db: Session, user: UserCreate) -> UserResponse:
     db.commit()
     db.refresh(db_user)
     return UserResponse.model_validate(db_user)
+
 
 def get_all_users(db: Session, skip: int = 0, limit: int = 100) -> list[User]:
     """Fetches a list of users with pagination from the database."""
