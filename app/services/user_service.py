@@ -1,27 +1,64 @@
-from sqlalchemy.orm import Session
+from fastapi import HTTPException, status
+from app.api.v1.schemas.auth_schema import UserCreate, UserResponse
 from app.models.user_model import User
-from app.api.v1.schemas.user_schema import UserCreate
-from datetime import datetime, timezone
-from typing import List, Optional
+from sqlalchemy.orm import Session
+from app.utils.hash import get_password_hash
 
-def create_user(db: Session, user: UserCreate) -> User:
-    existing_user = db.query(User).filter(User.username == user.username).one_or_none()
-    if existing_user:
-        raise ValueError(f"User with username {user.username} already exists.")
-    
+def get_user_by_username(db: Session, username: str) -> User | None:
+    """Fetches a user from the database based on their username."""
+    return db.query(User).filter(User.username == username).first()
+
+
+def get_user_by_id(db: Session, user_id: str) -> User | None:
+    """Fetches a user from the database based on their ID."""
+    return db.query(User).filter(User.id == user_id).first()
+
+
+def create_user(db: Session, user: UserCreate) -> UserResponse:
+    """
+    Creates a new user in the database.
+    Checks for duplicate username before creation.
+    Hashes the password before saving.
+    """
+    if get_user_by_username(db, user.username):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Username already taken"
+        )
+
+    hashed_password = get_password_hash(user.password)  # Hash the password
     db_user = User(
-        username=user.username,
-        password_hash=user.password, #Lägg in funktionalitet för hashning av lösenord här!
-        created_at=datetime.now(timezone.utc)
+        username=user.username, hashed_password=hashed_password, role=user.role
     )
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
-    return db_user
+    return UserResponse.model_validate(db_user)
 
-def get_user_by_username(db: Session, username: str) -> Optional[User]:
-    return db.query(User).filter(User.username == username).one_or_none()
+def get_all_users(db: Session, skip: int = 0, limit: int = 100) -> list[User]:
+    """Fetches a list of users with pagination from the database."""
+    return db.query(User).offset(skip).limit(limit).all()
 
-def get_all_users(db: Session) -> List[User]:
-    return db.query(User).all()
 
+def update_user(db: Session, user_id: str, user_update_data: dict) -> User | None:
+    """Updates a user's information in the database."""
+    db_user = db.query(User).filter(User.id == user_id).first()
+    if db_user:
+        for key, value in user_update_data.items():
+            if key == "password":
+                db_user.hashed_password = get_password_hash(value)
+            elif key in {"username", "role"}:
+                setattr(db_user, key, value)
+        db.commit()
+        db.refresh(db_user)
+        return db_user
+    return None
+
+
+def delete_user(db: Session, user_id: str) -> bool:
+    """Deletes a user from the database."""
+    db_user = db.query(User).filter(User.id == user_id).first()
+    if db_user:
+        db.delete(db_user)
+        db.commit()
+        return True
+    return False
