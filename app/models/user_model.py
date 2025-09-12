@@ -4,13 +4,14 @@ from datetime import datetime, timezone
 
 Base = declarative_base()
 
+
 class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     username = Column(String, unique=True, nullable=False)
-    role = Column(Enum("customer", "driver", "admin", name="user_roles"), nullable=False)
+    role = Column(
+        Enum("customer", "driver", "admin", name="user_roles"), nullable=False
+    )
     password_hash = Column(String, nullable=False)
-    created_at = Column(DateTime, default=lambda:datetime.now(timezone.utc))
-
-
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
