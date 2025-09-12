@@ -4,18 +4,6 @@ from app.models.user_model import User
 from sqlalchemy.orm import Session
 from app.utils.hash import get_password_hash
 
-<<<<<<< HEAD
-def create_user(db: Session, user: UserCreate) -> User:
-    existing_user = db.query(User).filter(User.username == user.username).one_or_none()
-    if existing_user:
-        raise ValueError(f"User with username {user.username} already exists.")
-    
-    new_user = User(
-        username=user.username,
-        role=user.role,
-        password_hash=user.password, #Lägg in funktionalitet för hashning av lösenord här!
-        created_at=datetime.now(timezone.utc)
-=======
 
 def get_user_by_username(db: Session, username: str) -> User | None:
     """Fetches a user from the database based on their username."""
@@ -41,17 +29,11 @@ def create_user(db: Session, user: UserCreate) -> UserResponse:
     hashed_password = get_password_hash(user.password)  # Hash the password
     db_user = User(
         username=user.username, hashed_password=hashed_password, role=user.role
->>>>>>> origin/feature-19-1114-setup-endpoints-routes-with-auth-sql
     )
-    db.add(new_user)
+    db.add(db_user)
     db.commit()
-<<<<<<< HEAD
-    db.refresh(new_user)
-    return new_user
-=======
     db.refresh(db_user)
     return UserResponse.model_validate(db_user)
->>>>>>> origin/feature-19-1114-setup-endpoints-routes-with-auth-sql
 
 
 def get_all_users(db: Session, skip: int = 0, limit: int = 100) -> list[User]:

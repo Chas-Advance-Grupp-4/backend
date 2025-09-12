@@ -14,7 +14,6 @@ class UserBase(BaseModel):
     @field_validator("username")
     def username_not_empty(cls, value):
         return not_empty("Username", value)
-    
 
     model_config = {"validate_by_name": True}
 
