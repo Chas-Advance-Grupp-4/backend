@@ -1,4 +1,4 @@
-## Backend API — Quick Local Run (for Developers)
+## Backend API — Quick Local Run
 
 This guide helps you get the backend running locally for frontend development.
 
