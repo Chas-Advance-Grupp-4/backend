@@ -5,6 +5,7 @@ app = FastAPI()
 
 fake_db = []
 
+
 @app.post("/register")
 def register_user(user: UserCreate):
     for u in fake_db:

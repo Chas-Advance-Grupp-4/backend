@@ -37,3 +37,11 @@ class UserRead(UserBase):
 class UserLogin(BaseModel):
     username: str
     password: str
+
+    @field_validator("username")
+    def username_not_empty(cls, value):
+        return not_empty("Username", value)
+
+    @field_validator("password")
+    def password_not_empty(cls, value):
+        return not_empty("Password", value)
