@@ -1,25 +1,12 @@
 import pytest
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from app.models.user_model import Base
+import pytest
 from app.services.user_service import create_user, get_user_by_username, get_all_users
-from app.api.v1.schemas.user_schema import UserCreate
+from app.api.v1.schemas.auth_schema import UserCreate
+from fastapi import HTTPException
 
-# ---Testdatabas ---
-# Testdatabase to temporarily store data during tests
-# Using SQLite in-memory database for testing
 
-@pytest.fixture(scope="function")
-def db_session():
-    engine = create_engine("sqlite:///:memory:", echo=False)
-    Base.metadata.create_all(engine)
-    Session = sessionmaker(bind=engine)
-    session = Session()
-    yield session
-    session.close()
+# --- CRUD operation tests using db_session from conftest ---
 
-# --- CRUD operation tests ---
-# Testing create, read operations for User model
 def test_create_user(db_session):
     user_in = UserCreate(username="Bengt", password="1234", role="customer")
     user = create_user(db_session, user_in)
@@ -27,14 +14,16 @@ def test_create_user(db_session):
     assert user.username == "Bengt"
     assert user.role == "customer"
 
-# Test to ensure duplicate usernames are not allowed
+# Test that creating a user with a duplicate username raises an error
 def test_create_user_duplicate(db_session):
     user_in = UserCreate(username="Bobby", password="1234", role="driver")
     create_user(db_session, user_in)
-    with pytest.raises(ValueError):
+    with pytest.raises(HTTPException) as exc_info:
         create_user(db_session, user_in)
+    assert exc_info.value.status_code == 400
+    assert "Username already taken" in exc_info.value.detail
 
-# Test to fetch user by username
+# Test retrieving a user by username and handling non-existent user
 def test_get_user_by_username(db_session):
     user_in = UserCreate(username="Olle", password="1234", role="admin")
     create_user(db_session, user_in)
@@ -43,7 +32,8 @@ def test_get_user_by_username(db_session):
     assert user.username == "Olle"
     assert get_user_by_username(db_session, "ghost") is None
 
-# Test to fetch all users
+
+# Test retrieving all users after creating several
 def test_get_all_users(db_session):
     create_user(db_session, UserCreate(username="Bengt", password="1", role="customer"))
     create_user(db_session, UserCreate(username="Bobby", password="2", role="driver"))

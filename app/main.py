@@ -1,15 +1,22 @@
 from fastapi import FastAPI
-from app.api.v1.schemas.user_schema import UserCreate
-
-app = FastAPI()
-
-fake_db = []
+from contextlib import asynccontextmanager
+from app.api.v1.routers.router_v1 import router as v1_router
 
 
-@app.post("/register")
-def register_user(user: UserCreate):
-    for u in fake_db:
-        if u["username"] == user.username:
-            return {"error": "User already exists"}, 400
-    fake_db.append(user.dict())
-    return user
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    print("Application startup initiated.")
+    yield
+    print("Application shutdown complete.")
+
+
+app = FastAPI(
+    docs_url="/docs", redoc_url="/redoc", openapi_url="/openapi.json", lifespan=lifespan
+)
+
+app.include_router(v1_router, prefix="/api/v1")
+
+
+@app.get("/health")
+async def health_check():
+    return {"status": "ok", "message": "API is running"}

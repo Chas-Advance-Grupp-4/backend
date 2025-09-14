@@ -28,16 +28,18 @@ def test_usercreate_valid():
 def test_usercreate_empty_username():
     with pytest.raises(ValidationError) as exc_info:
         UserCreate(username="", password="secret", role="customer")
-    assert "Username field empty." in str(exc_info.value)
+    assert any("Username field empty." in e['msg'] for e in exc_info.value.errors())
 
 def test_usercreate_empty_password():
     with pytest.raises(ValidationError) as exc_info:
         UserCreate(username="Bobby", password="", role="customer")
-    assert "Password field empty." in str(exc_info.value)
+    assert any("Password field empty." in e['msg'] for e in exc_info.value.errors())
 
 def test_usercreate_invalid_role():
-    with pytest.raises(ValidationError):
+    with pytest.raises(ValidationError) as exc_info:
         UserCreate(username="Bobby", password="secret", role="invalid")
+    errors = exc_info.value.errors()
+    assert any(e['loc'] == ('role',) for e in errors)
 
 # --- UserLogin schema tests ---
 def test_userlogin_valid():
@@ -48,9 +50,9 @@ def test_userlogin_valid():
 def test_userlogin_empty_username():
     with pytest.raises(ValidationError) as exc_info:
         UserLogin(username="   ", password="1234")
-    assert "Username field empty." in str(exc_info.value)
+    assert any("Username field empty." in e['msg'] for e in exc_info.value.errors())
 
 def test_userlogin_empty_password():
     with pytest.raises(ValidationError) as exc_info:
         UserLogin(username="Anna", password="   ")
-    assert "Password field empty." in str(exc_info.value)
+    assert any("Password field empty." in e['msg'] for e in exc_info.value.errors())

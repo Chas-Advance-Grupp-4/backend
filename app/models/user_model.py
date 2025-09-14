@@ -1,17 +1,20 @@
-from sqlalchemy import Column, String, Integer, DateTime, Enum
-from sqlalchemy.ext.declarative import declarative_base
-from datetime import datetime, timezone
+from sqlalchemy import Column, String, DateTime
 
-Base = declarative_base()
+# from sqlalchemy.ext.declarative import declarative_base
+from datetime import datetime, timezone
+from app.db.connection import Base
+import uuid
+
+# Base = declarative_base()
 
 
 class User(Base):
     __tablename__ = "users"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     username = Column(String, unique=True, nullable=False)
+    hashed_password = Column(String, nullable=False)
     role = Column(
-        Enum("customer", "driver", "admin", name="user_roles"), nullable=False
-    )
-    password_hash = Column(String, nullable=False)
+        String, nullable=False, default="customer"
+    )  # customer | driver | admin
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
