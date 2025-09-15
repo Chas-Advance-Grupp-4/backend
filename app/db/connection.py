@@ -4,7 +4,17 @@ from app.config.settings import settings
 
 # create_engine sets up the connection to your database.
 # echo=False means SQLAlchemy won't print every SQL query it makes (set to True for debugging)
-engine = create_engine(settings.DATABASE_URL, echo=False)
+
+# Add connect_args={"check_same_thread": False} if using SQLite
+connect_args = {}
+if settings.DATABASE_URL.startswith("sqlite"):
+    connect_args = {"check_same_thread": False}
+
+engine = create_engine(
+    settings.DATABASE_URL,
+    echo=False,
+    connect_args=connect_args  # Needed for SQLite when used with FastAPI/TestClient
+)
 
 # sessionmaker creates a "SessionLocal" class.
 # Sessions are how you interact with your database (e.g., add, query, delete).
@@ -14,6 +24,7 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # declarative_base is used by your SQLAlchemy models to define database tables.
 Base = declarative_base()
+
 
 # Dependency to get DB session for FastAPI routes
 # This function will be used with FastAPI's Depends to provide a session to route test functions.
