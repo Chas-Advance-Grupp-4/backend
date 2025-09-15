@@ -1,5 +1,5 @@
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy.orm import sessionmaker, declarative_base, Session
 from app.config.settings import settings
 
 # create_engine sets up the connection to your database.
@@ -14,3 +14,12 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # declarative_base is used by your SQLAlchemy models to define database tables.
 Base = declarative_base()
+
+# Dependency to get DB session for FastAPI routes
+# This function will be used with FastAPI's Depends to provide a session to route test functions.
+def get_db():
+    db: Session = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()

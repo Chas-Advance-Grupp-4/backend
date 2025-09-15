@@ -1,5 +1,6 @@
 from pydantic import BaseModel, field_validator, Field
 from datetime import datetime
+from typing import Literal
 
 
 def not_empty(field_name: str, value: str) -> str:
@@ -10,6 +11,7 @@ def not_empty(field_name: str, value: str) -> str:
 
 class UserBase(BaseModel):
     username: str = Field(...)
+    role: Literal["customer", "driver", "admin"] = Field(...)
 
     @field_validator("username")
     def username_not_empty(cls, value):
@@ -32,5 +34,14 @@ class UserRead(UserBase):
     model_config = {"from_attributes": True}
 
 
-class UserLogin(UserBase):
+class UserLogin(BaseModel):
+    username: str
     password: str
+
+    @field_validator("username")
+    def username_not_empty(cls, value):
+        return not_empty("Username", value)
+
+    @field_validator("password")
+    def password_not_empty(cls, value):
+        return not_empty("Password", value)
