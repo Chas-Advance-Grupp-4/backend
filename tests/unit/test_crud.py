@@ -35,9 +35,9 @@ def test_get_user_by_username(db_session):
 
 # Test retrieving all users after creating several
 def test_get_all_users(db_session):
-    create_user(db_session, UserCreate(username="Bengt", password="1", role="customer"))
-    create_user(db_session, UserCreate(username="Bobby", password="2", role="driver"))
-    create_user(db_session, UserCreate(username="Olle", password="3", role="admin"))
+    create_user(db_session, UserCreate(username="Peter", password="1", role="customer"))
+    create_user(db_session, UserCreate(username="Calle", password="2", role="driver"))
+    create_user(db_session, UserCreate(username="Therese", password="3", role="admin"))
     users = get_all_users(db_session)
     assert len(users) == 3
-    assert {u.username for u in users} == {"Bengt", "Bobby", "Olle"}
+    assert {u.username for u in users} == {"Peter", "Calle", "Therese"}

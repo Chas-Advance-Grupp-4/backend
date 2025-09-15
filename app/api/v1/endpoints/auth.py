@@ -2,7 +2,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.api.v1.schemas.auth_schema import UserCreate, UserResponse, LoginRequest, Token
-from app.services import auth_service
+from app.services import auth_service, user_service
 from app.dependencies import get_db, get_current_user
 from app.models.user_model import User
 
@@ -23,7 +23,7 @@ async def register_user(user: UserCreate, db: DbSession):
     - Hashes the password before saving.
     - Checks for duplicate username.
     """
-    new_user = auth_service.create_user(db, user)
+    new_user = user_service.create_user(db, user)
     return new_user
 
 
@@ -44,6 +44,15 @@ async def login_for_access_token(login_data: LoginRequest, db: DbSession):
     access_token = auth_service.create_access_token_for_user(user)
     return {"access_token": access_token, "token_type": "bearer"}
 
+@router.get("/users/me", response_model=UserResponse, summary="Get your own user")
+async def fetch_current_user(
+    current_user: Annotated[User, Depends(get_current_user)]
+):
+    """
+    Fetch the currently authenticated user's information.
+    """
+    return current_user
+
 
 @router.put("/users/me", response_model=UserResponse, summary="Update your own user")
 async def update_user_endpoint(
@@ -55,7 +64,7 @@ async def update_user_endpoint(
     Updates your own user information.
     """
     update_dict = user_data.model_dump(exclude_unset=True)
-    updated_user = auth_service.update_user(db, current_user.id, update_dict)
+    updated_user = user_service.update_user(db, current_user.id, update_dict)
     if not updated_user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
@@ -72,7 +81,7 @@ async def delete_user_endpoint(
     """
     Deletes your own user account.
     """
-    if not auth_service.delete_user(db, current_user.id):
+    if not user_service.delete_user(db, current_user.id):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
