@@ -44,45 +44,10 @@ async def login_for_access_token(login_data: LoginRequest, db: DbSession):
     access_token = auth_service.create_access_token_for_user(user)
     return {"access_token": access_token, "token_type": "bearer"}
 
-@router.get("/users/me", response_model=UserResponse, summary="Get your own user")
-async def fetch_current_user(
-    current_user: Annotated[User, Depends(get_current_user)]
-):
+
+@router.get("/me", response_model=UserResponse, summary="Get your own user info")
+async def fetch_current_user(current_user: Annotated[User, Depends(get_current_user)]):
     """
     Fetch the currently authenticated user's information.
     """
     return current_user
-
-
-@router.put("/users/me", response_model=UserResponse, summary="Update your own user")
-async def update_user_endpoint(
-    user_data: UserCreate,
-    db: DbSession,
-    current_user: Annotated[User, Depends(get_current_user)],
-):
-    """
-    Updates your own user information.
-    """
-    update_dict = user_data.model_dump(exclude_unset=True)
-    updated_user = user_service.update_user(db, current_user.id, update_dict)
-    if not updated_user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
-        )
-    return updated_user
-
-
-@router.delete(
-    "/users/me", status_code=status.HTTP_204_NO_CONTENT, summary="Delete your own user"
-)
-async def delete_user_endpoint(
-    db: DbSession, current_user: Annotated[User, Depends(get_current_user)]
-):
-    """
-    Deletes your own user account.
-    """
-    if not user_service.delete_user(db, current_user.id):
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
-        )
-    return {"message": "User deleted successfully"}
