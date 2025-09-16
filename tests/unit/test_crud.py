@@ -1,7 +1,7 @@
 import pytest
 import pytest
 from app.services.user_service import create_user, get_user_by_username, get_all_users
-from app.api.v1.schemas.auth_schema import UserCreate
+from app.api.v1.schemas.user_schema import UserCreate
 from fastapi import HTTPException
 
 

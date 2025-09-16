@@ -9,9 +9,12 @@ def not_empty(field_name: str, value: str) -> str:
     return value
 
 
+Role = Literal["customer", "driver", "admin"]
+
+
 class UserBase(BaseModel):
     username: str = Field(...)
-    role: Literal["customer", "driver", "admin"] = Field(...)
+    role: Role = Field(...)
 
     @field_validator("username")
     def username_not_empty(cls, value):
@@ -50,7 +53,7 @@ class UserLogin(BaseModel):
 class UserUpdate(BaseModel):
     username: str | None = None
     password: str | None = None
-    role: Literal["customer", "driver", "admin"] | None = None
+    role: Role | None = None
 
     @field_validator("username")
     def username_not_empty_if_present(cls, value):

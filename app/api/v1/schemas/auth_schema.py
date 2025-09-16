@@ -1,25 +1,5 @@
 from pydantic import BaseModel
-from typing import Literal
-from datetime import datetime
-
-Role = Literal["customer", "driver", "admin"]
-
-
-class UserBase(BaseModel):
-    username: str
-    role: Role = "customer"
-
-
-class UserCreate(UserBase):
-    password: str
-
-
-class UserResponse(UserBase):
-    id: str
-    created_at: datetime
-
-    class Config:
-        from_attributes = True
+from app.api.v1.schemas.user_schema import Role
 
 
 class LoginRequest(BaseModel):

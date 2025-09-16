@@ -1,7 +1,8 @@
 from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from app.api.v1.schemas.auth_schema import UserCreate, UserResponse, LoginRequest, Token
+from app.api.v1.schemas.user_schema import UserCreate, UserRead
+from app.api.v1.schemas.auth_schema import LoginRequest, Token
 from app.services import auth_service, user_service
 from app.dependencies import get_db, get_current_user
 from app.models.user_model import User
@@ -13,7 +14,7 @@ DbSession = Annotated[Session, Depends(get_db)]
 
 @router.post(
     "/register",
-    response_model=UserResponse,
+    response_model=UserRead,
     status_code=status.HTTP_201_CREATED,
     summary="Register a new user",
 )
@@ -45,7 +46,7 @@ async def login_for_access_token(login_data: LoginRequest, db: DbSession):
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-@router.get("/me", response_model=UserResponse, summary="Get your own user info")
+@router.get("/me", response_model=UserRead, summary="Get your own user info")
 async def fetch_current_user(current_user: Annotated[User, Depends(get_current_user)]):
     """
     Fetch the currently authenticated user's information.
