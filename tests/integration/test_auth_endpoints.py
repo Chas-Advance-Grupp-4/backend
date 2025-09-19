@@ -16,7 +16,7 @@ def new_user_data():
 
 # Test successful user registration
 def test_register_user_success(new_user_data):
-    response = client.post("/api/v1/register", json=new_user_data)
+    response = client.post("/api/v1/auth/register", json=new_user_data)
     assert response.status_code == 201  # Expecting HTTP 201 Created
     data = response.json()
     assert data["username"] == new_user_data["username"]
@@ -24,14 +24,14 @@ def test_register_user_success(new_user_data):
 
 # Test registration with duplicate user data
 def test_register_user_duplicate(new_user_data):
-    client.post("/api/v1/register", json=new_user_data)  # First registration
-    response = client.post("/api/v1/register", json=new_user_data)  # Duplicate registration
+    client.post("/api/v1/auth/register", json=new_user_data)  # First registration
+    response = client.post("/api/v1/auth/register", json=new_user_data)  # Duplicate registration
     assert response.status_code == 400  # Expecting HTTP 400 Bad Request
 
 # Test successful user login
 def test_login_user_success(new_user_data):
-    client.post("/api/v1/register", json=new_user_data)  # Register user first
-    response = client.post("/api/v1/login", json={
+    client.post("/api/v1/auth/register", json=new_user_data)  # Register user first
+    response = client.post("/api/v1/auth/login", json={
         "username": new_user_data["username"],
         "password": new_user_data["password"]
     })
@@ -42,8 +42,8 @@ def test_login_user_success(new_user_data):
 
 # Test login with wrong password
 def test_login_user_wrong_password(new_user_data):
-    client.post("/api/v1/register", json=new_user_data)  # Register user first
-    response = client.post("/api/v1/login", json={
+    client.post("/api/v1/auth/register", json=new_user_data)  # Register user first
+    response = client.post("/api/v1/auth/login", json={
         "username": new_user_data["username"],
         "password": "wrongpass"
     })

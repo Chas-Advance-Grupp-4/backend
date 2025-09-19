@@ -1,4 +1,6 @@
 import os
+import time
+import gc
 import pytest
 
 # --- Environment variables for test ---
@@ -9,7 +11,8 @@ os.environ["ACCESS_TOKEN_EXPIRE_MINUTES"] = "30"
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from app.db.connection import Base, get_db
+from app.db.connection import Base 
+from app.dependencies import get_db 
 from app.main import app
 from app.models.user_model import User
 
@@ -59,10 +62,21 @@ def client(db_session):
 @pytest.fixture(scope="session", autouse=True)
 def teardown():
     yield
-    Base.metadata.drop_all(bind=engine)
-    # Remove test database file
+    # Drop all tables using an explicit connection context
+    with engine.begin() as conn:
+        Base.metadata.drop_all(bind=conn)
+    # Dispose engine to release SQLite file handle on Windows
+    engine.dispose()
+    # Encourage release of any lingering references
+    gc.collect()
+    # Remove test database file with a short retry loop for Windows file locks
     if os.path.exists("./test.db"):
-        os.remove("./test.db")
+        for _ in range(10):
+            try:
+                os.remove("./test.db")
+                break
+            except PermissionError:
+                time.sleep(0.1)
 
 # --- Fixture to clean users table before each test ---
 @pytest.fixture(autouse=True)

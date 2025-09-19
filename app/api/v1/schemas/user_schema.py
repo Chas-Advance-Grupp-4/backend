@@ -9,9 +9,12 @@ def not_empty(field_name: str, value: str) -> str:
     return value
 
 
+Role = Literal["customer", "driver", "admin"]
+
+
 class UserBase(BaseModel):
     username: str = Field(...)
-    role: Literal["customer", "driver", "admin"] = Field(...)
+    role: Role = Field(...)
 
     @field_validator("username")
     def username_not_empty(cls, value):
@@ -29,7 +32,7 @@ class UserCreate(UserBase):
 
 
 class UserRead(UserBase):
-    id: int
+    id: str
     created_at: datetime
     model_config = {"from_attributes": True}
 
@@ -44,4 +47,22 @@ class UserLogin(BaseModel):
 
     @field_validator("password")
     def password_not_empty(cls, value):
+        return not_empty("Password", value)
+
+
+class UserUpdate(BaseModel):
+    username: str | None = None
+    password: str | None = None
+    role: Role | None = None
+
+    @field_validator("username")
+    def username_not_empty_if_present(cls, value):
+        if value is None:
+            return value
+        return not_empty("Username", value)
+
+    @field_validator("password")
+    def password_not_empty_if_present(cls, value):
+        if value is None:
+            return value
         return not_empty("Password", value)

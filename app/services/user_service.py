@@ -1,5 +1,5 @@
 from fastapi import HTTPException, status
-from app.api.v1.schemas.auth_schema import UserCreate, UserResponse
+from app.api.v1.schemas.user_schema import UserCreate, UserRead
 from app.models.user_model import User
 from sqlalchemy.orm import Session
 from app.utils.hash import get_password_hash
@@ -15,7 +15,7 @@ def get_user_by_id(db: Session, user_id: str) -> User | None:
     return db.query(User).filter(User.id == user_id).first()
 
 
-def create_user(db: Session, user: UserCreate) -> UserResponse:
+def create_user(db: Session, user: UserCreate) -> UserRead:
     """
     Creates a new user in the database.
     Checks for duplicate username before creation.
@@ -33,7 +33,7 @@ def create_user(db: Session, user: UserCreate) -> UserResponse:
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
-    return UserResponse.model_validate(db_user)
+    return UserRead.model_validate(db_user)
 
 
 def get_all_users(db: Session, skip: int = 0, limit: int = 100) -> list[User]:
