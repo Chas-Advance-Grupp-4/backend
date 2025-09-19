@@ -2,7 +2,6 @@ from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from app.api.v1.routers.router_v1 import router as v1_router
 
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("Application startup initiated.")
