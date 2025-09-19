@@ -13,7 +13,7 @@ if settings.DATABASE_URL.startswith("sqlite"):
 engine = create_engine(
     settings.DATABASE_URL,
     echo=False,
-    connect_args=connect_args  # Needed for SQLite when used with FastAPI/TestClient
+    connect_args=connect_args,  # Needed for SQLite when used with FastAPI/TestClient
 )
 
 # sessionmaker creates a "SessionLocal" class.
