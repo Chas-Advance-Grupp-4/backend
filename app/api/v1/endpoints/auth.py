@@ -46,7 +46,7 @@ async def login_for_access_token(login_data: LoginRequest, db: DbSession):
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-@router.get("/me", response_model=UserRead, summary="Get your own user info")
+@router.get("/me", response_model=UserRead, summary="Get your own user")
 async def fetch_current_user(current_user: Annotated[User, Depends(get_current_user)]):
     """
     Fetch the currently authenticated user's information.

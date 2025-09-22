@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 from app.db.connection import Base
 import uuid
 
+
 class Shipment(Base):
     __tablename__ = "shipments"
 
