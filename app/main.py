@@ -12,17 +12,16 @@ if settings.ENV == "development":
 else:
     allow_origins = [settings.FRONTEND_URL]
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("Application startup initiated.")
     yield
     print("Application shutdown complete.")
 
+
 app = FastAPI(
-    docs_url="/docs",
-    redoc_url="/redoc",
-    openapi_url="/openapi.json",
-    lifespan=lifespan
+    docs_url="/docs", redoc_url="/redoc", openapi_url="/openapi.json", lifespan=lifespan
 )
 
 # CORS setup
@@ -36,6 +35,7 @@ app.add_middleware(
 
 # Routers
 app.include_router(v1_router, prefix="/api/v1")
+
 
 @app.get("/health")
 async def health_check():
