@@ -5,7 +5,7 @@ from app.dependencies import get_db, require_roles
 from app.services import shipment_service
 from app.api.v1.schemas.shipment_schema import ShipmentCreate, ShipmentRead
 
-router = APIRouter(prefix="/shipments", tags=["Shipments"])
+router = APIRouter(tags=["Shipments"])
 
 # Dependencies
 DbSession = Annotated[Session, Depends(get_db)]
@@ -26,7 +26,7 @@ DriverOnly = Annotated[None, Depends(require_roles(["driver"]))]  # if needed
 async def create_shipment(
     payload: ShipmentCreate,
     db: DbSession,
-    _: CustomerOnly | AdminOnly,  # allow customer or admin
+    _: None = Depends(require_roles(["customer", "admin"])),  # allow customer or admin
 ):
     return shipment_service.create_shipment(db, payload)
 

@@ -3,6 +3,9 @@ from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 from alembic import context
 from app.db.connection import Base
+from app.models.user_model import User
+from app.models.shipment_model import Shipment
+
 
 # from app.models.user_model import Base
 # import app.models.user_model
