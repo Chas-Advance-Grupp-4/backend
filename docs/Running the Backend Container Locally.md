@@ -7,12 +7,12 @@ Docker installed on your machine.
 
 .env file in your project root with the necessary environment variables:  
 
-DATABASE_URL=<your-database-url>  
-SECRET_KEY=<your-secret-key>  
+DATABASE_URL=< your-database-url >  
+SECRET_KEY=< your-secret-key >  
 ALGORITHM=HS256  
 ACCESS_TOKEN_EXPIRE_MINUTES=30  
 ENV=development   
-FRONTEND_URL=<frontend-url>    
+FRONTEND_URL=< frontend-url >    
 
 Note: Do not commit your .env file to GitHub. Keep it local or use secrets.  
 
@@ -21,7 +21,7 @@ Note: Do not commit your .env file to GitHub. Keep it local or use secrets.
 From the project root, run:  
 for develop image with latest updates:  
 docker build -t annaschwartzchas/chas_advance_backend:develop-latest .  
-for main image with latest stable version: 
+for main image with latest stable version:  
 docker build -t annaschwartzchas/chas_advance_backend:main-latest .    
 
 ### Running the Container ### 
@@ -29,18 +29,10 @@ docker build -t annaschwartzchas/chas_advance_backend:main-latest .
 Use the following command to start the container locally:   
 
 for develop image:   
-docker run -d \
-  --name backend_local \
-  -p 8000:8000 \
-  --env-file .env \
-  annaschwartzchas/chas_advance_backend:develop-latest
+docker run -d --name backend_local -p 8000:8000 --env-file .env annaschwartzchas/chas_advance_backend:develop-latest  
 
 for main image:  
-  docker run -d \
-  --name backend_local \
-  -p 8000:8000 \
-  --env-file .env \
-  annaschwartzchas/chas_advance_backend:main-latest
+  docker run -d --name backend_local -p 8000:8000 --env-file .env annaschwartzchas/chas_advance_backend:main-latest  
 
 -d runs the container in detached mode.
 
