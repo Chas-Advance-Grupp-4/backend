@@ -1,4 +1,4 @@
-name: CI v1 Tests, Build docker image and Push to Docker Hub. 
+name: CI v1 Tests
 
 on: 
   pull_request:
