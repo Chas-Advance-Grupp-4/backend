@@ -77,6 +77,8 @@ jobs:
 
             docker run -d --name backend_test --network ci_network -p 8000:8000 -e DATABASE_URL="$DATABASE_URL" annaschwartzchas/chas_advance_backend:${{ env.IMAGE_TAG }}
            
+            sleep 20
+
             HEALTH_CHECK_PASSED=false
             for i in {1..15}; do
               if curl -s http://localhost:8000/health | jq -e '.status=="ok"' > /dev/null; then
@@ -86,6 +88,7 @@ jobs:
               else
                 echo "Waiting for the container to start..."
                 sleep 5
+                docker logs backend_test
               fi
             done
 
