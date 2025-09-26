@@ -13,7 +13,7 @@ class ShipmentBase(BaseModel):
     def shipment_must_not_be_empty(cls, v):
         if not v.strip():
             raise ValueError("Shipment field empty.")
-        return v    
+        return v
 
 
 class ShipmentCreate(ShipmentBase):
