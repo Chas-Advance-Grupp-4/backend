@@ -53,10 +53,25 @@ jobs:
 
             docker build -t annaschwartzchas/chas_advance_backend:$IMAGE_TAG .
 
-        - name: Test Docker image with health check
+        - name: Test Docker image with temporary Postgres database
           run: |
+            # Start a temporary Postgres container (Can be changed to a real testdatabase later on)  
+            docker run -d --name ci_postgres \
+            -e POSTGRES_USER=test \
+            -e POSTGRES_PASSWORD=test \
+            -e POSTGRES_DB=testdb \
+            -p 5432:5432 \
+            postgres:15
+
+            # Wait for Postgre to be ready
+            sleep 10
+
+            export DATABASE_URL="postgresql://test:test@localhost:5432/testdb"
+            
             sudo apt-get update && sudo apt-get install -y jq
-            docker run -d --name backend_test -p 8000:8000 -e DATABASE_URL="${{ secrets.DATABASE_URL }}" annaschwartzchas/chas_advance_backend:${{ env.IMAGE_TAG }}
+
+            docker run -d --name backend_test -p 8000:8000 -e DATABASE_URL="$DATABASE_URL" annaschwartzchas/chas_advance_backend:${{ env.IMAGE_TAG }}
+           
             HEALTH_CHECK_PASSED=false
             for i in {1..10}; do
               if curl -s http://localhost:8000/health | jq -e '.status=="ok"' > /dev/null; then
@@ -68,15 +83,14 @@ jobs:
                 sleep 5
               fi
             done
-            docker stop backend_test
-            docker rm backend_test
+
+            docker stop backend_test ci_postgres
+            docker rm backend_test ci_postgres
+
             if [ "$HEALTH_CHECK_PASSED" = false ]; then
               echo "Health check failed after 10 attempts"
               exit 1
-            fi
-
-          env: 
-              DATABASE_URL: ${{ secrets.DATABASE_URL }}
+            fi    
         
         - name: Push Docker Image to Docker Hub
           run: |
