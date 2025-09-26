@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - develop
+      
   workflow_dispatch:
 
 jobs: 
@@ -52,29 +53,53 @@ jobs:
 
             docker build -t annaschwartzchas/chas_advance_backend:$IMAGE_TAG .
 
-        - name: Test Docker image with health check
+        - name: Test Docker image with temporary Postgres database
           run: |
-            docker run -d --name backend_test -p 8000:8000 -e DATABASE_URL="${{ secrets.DATABASE_URL }}" annaschwartzchas/chas_advance_backend:${{ env.IMAGE_TAG }}
+            # Create a Docker network
+            docker network create ci_network
+            # Start a temporary Postgres container (Can be changed to a real testdatabase later on)  
+            docker run -d --name ci_postgres --network ci_network \
+            -e POSTGRES_USER=test \
+            -e POSTGRES_PASSWORD=test \
+            -e POSTGRES_DB=testdb \
+            -p 5432:5432 \
+            postgres:15
+
+            # Wait for Postgre to be ready
+            until docker exec ci_postgres pg_isready -U test -d testdb; do
+              echo "Waiting for Postgres..."
+              sleep 2
+            done
+
+            export DATABASE_URL="postgresql+psycopg://test:test@ci_postgres:5432/testdb"
+            
+            sudo apt-get update && sudo apt-get install -y jq
+
+            docker run -d --name backend_test --network ci_network -p 8000:8000 -e DATABASE_URL="$DATABASE_URL" -e SECRET_KEY="test" -e ACCESS_TOKEN_EXPIRE_MINUTES=30 annaschwartzchas/chas_advance_backend:${{ env.IMAGE_TAG }}
+           
+            sleep 20
+
             HEALTH_CHECK_PASSED=false
-            for i in {1..10}; do
-              if curl -s http://localhost:8000/health | grep -q "ok"; then
+            for i in {1..15}; do
+              if curl -s http://localhost:8000/health | jq -e '.status=="ok"' > /dev/null; then
                 echo "Health check passed!"
                 HEALTH_CHECK_PASSED=true
                 break
               else
                 echo "Waiting for the container to start..."
                 sleep 5
+                docker logs backend_test
               fi
             done
-            docker stop backend_test
-            docker rm backend_test
+
+            docker stop backend_test ci_postgres
+            docker rm backend_test ci_postgres
+            docker network rm ci_network
+
             if [ "$HEALTH_CHECK_PASSED" = false ]; then
               echo "Health check failed after 10 attempts"
               exit 1
-            fi
-
-          env: 
-              DATABASE_URL: ${{ secrets.DATABASE_URL }}
+            fi    
         
         - name: Push Docker Image to Docker Hub
           run: |
