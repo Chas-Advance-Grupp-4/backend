@@ -55,8 +55,11 @@ jobs:
 
         - name: Test Docker image with temporary Postgres database
           run: |
+            # Create a Docker network
+            docker network create ci_network
+            
             # Start a temporary Postgres container (Can be changed to a real testdatabase later on)  
-            docker run -d --name ci_postgres \
+            docker run -d --name ci_postgres --network ci_network \
             -e POSTGRES_USER=test \
             -e POSTGRES_PASSWORD=test \
             -e POSTGRES_DB=testdb \
@@ -66,11 +69,11 @@ jobs:
             # Wait for Postgre to be ready
             sleep 10
 
-            export DATABASE_URL="postgresql+psycopg://test:test@localhost:5432/testdb"
+            export DATABASE_URL="postgresql+psycopg://test:test@ci_postgres:5432/testdb"
             
             sudo apt-get update && sudo apt-get install -y jq
 
-            docker run -d --name backend_test -p 8000:8000 -e DATABASE_URL="$DATABASE_URL" annaschwartzchas/chas_advance_backend:${{ env.IMAGE_TAG }}
+            docker run -d --name backend_test --network ci_network -p 8000:8000 -e DATABASE_URL="$DATABASE_URL" annaschwartzchas/chas_advance_backend:${{ env.IMAGE_TAG }}
            
             HEALTH_CHECK_PASSED=false
             for i in {1..10}; do
@@ -86,6 +89,7 @@ jobs:
 
             docker stop backend_test ci_postgres
             docker rm backend_test ci_postgres
+            docker network rm ci_network
 
             if [ "$HEALTH_CHECK_PASSED" = false ]; then
               echo "Health check failed after 10 attempts"
