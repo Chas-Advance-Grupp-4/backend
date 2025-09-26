@@ -69,8 +69,10 @@ jobs:
             docker stop backend_test
             docker rm backend_test
             if [ "$HEALTH_CHECK_PASSED" = false ]; then
-            echo "Health check failed after 10 attempts"
-            exit 1
+              echo "Health check failed after 10 attempts"
+              exit 1
+            fi
+
           env: 
               DATABASE_URL: ${{ secrets.DATABASE_URL }}
         
