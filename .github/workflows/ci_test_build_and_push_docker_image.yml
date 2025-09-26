@@ -3,9 +3,9 @@ name: CI v1 Tests, Build docker image and Push to Docker Hub.
 on: 
   push:
     branches:
-      #- main
-      #- develop
-      - 14-7110-create-dockerfile-for-backend-that-builds-our-project-ensure-it-can-be-composed-with-docker-compose
+      - main
+      - develop
+      
   workflow_dispatch:
 
 jobs: 
