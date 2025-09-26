@@ -13,3 +13,5 @@ class Shipment(Base):
     receiver_id = Column(String(36), ForeignKey("users.id"), nullable=False)
     driver_id = Column(String(36), ForeignKey("users.id"), nullable=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    
