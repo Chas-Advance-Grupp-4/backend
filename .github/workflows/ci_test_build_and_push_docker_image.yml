@@ -75,7 +75,7 @@ jobs:
             
             sudo apt-get update && sudo apt-get install -y jq
 
-            docker run -d --name backend_test --network ci_network -p 8000:8000 -e DATABASE_URL="$DATABASE_URL" annaschwartzchas/chas_advance_backend:${{ env.IMAGE_TAG }}
+            docker run -d --name backend_test --network ci_network -p 8000:8000 -e DATABASE_URL="$DATABASE_URL" -e SECRET_KEY="test" -e ACCESS_TOKEN_EXPIRE_MINUTES=30 annaschwartzchas/chas_advance_backend:${{ env.IMAGE_TAG }}
            
             sleep 20
 
