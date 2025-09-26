@@ -3,7 +3,6 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 from app.config.settings import settings
 
 
-
 # create_engine sets up the connection to your database.
 # echo=False means SQLAlchemy won't print every SQL query it makes (set to True for debugging)
 
