@@ -41,7 +41,7 @@ jobs:
         - name: Build Docker Image
           run: |
             BRANCH=${GITHUB_REF##*/}
-            if[ "$BRANCH" == "main" ]; then
+            if [ "$BRANCH" == "main" ]; then
               IMAGE_TAG="main-latest"
             elif [ "$BRANCH" == "develop" ]; then
                 IMAGE_TAG="develop-latest"
