@@ -22,3 +22,7 @@ venv/
 pycache/
 *.pyc
 *.pyo
+__pycache__/
+
+.git
+.gitignore

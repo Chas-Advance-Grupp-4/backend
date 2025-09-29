@@ -1,0 +1,91 @@
+#!/bin/bash
+
+echo "Running pre-commit checks..."
+
+# --- Activate virtual environment (cross-platform) ---
+if [ -f "venv/bin/activate" ]; then
+    echo "Activating virtual environment (Linux/Mac)..."
+    source venv/bin/activate
+elif [ -f "venv/Scripts/activate" ]; then
+    echo "Activating virtual environment (Windows)..."
+    source venv/Scripts/activate
+else
+    echo "Warning: No virtual environment found."
+    echo "Please create one with:"
+    echo "  python3 -m venv venv"
+    echo "  source venv/bin/activate  # Linux/Mac"
+    echo "  venv\\Scripts\\activate    # Windows"
+fi
+
+# --- Backend (Python / FastAPI) ---
+if [ -d "app" ] && [ -f "requirements.txt" ]; then
+    echo "Backend detected (Python/FastAPI)."
+
+    # Black formatting
+    echo "Checking Python formatting with Black..."
+    if ! command -v black &> /dev/null; then
+        echo "Black is not installed. Install it with:"
+        echo "  pip install black"
+        exit 1
+    fi
+    black --check app
+    if [ $? -ne 0 ]; then
+        echo ""
+        echo "Black formatting failed."
+        echo "Fix it with:"
+        echo "  black app"
+        exit 1
+    fi
+
+    # Flake8 linting
+    echo "Linting Python code with Flake8..."
+    if ! command -v flake8 &> /dev/null; then
+        echo "Flake8 is not installed. Install it with:"
+        echo "  pip install flake8"
+        exit 1
+    fi
+    flake8 app
+    if [ $? -ne 0 ]; then
+        echo ""
+        echo "Flake8 found linting issues."
+        echo "Fix them with:"
+        echo "  flake8 app"
+        exit 1
+    fi
+
+    # Secrets scanning
+    if [ -f ".secrets.baseline" ]; then
+        echo "Checking for secrets with detect-secrets..."
+        if ! command -v detect-secrets &> /dev/null; then
+            echo "detect-secrets is not installed. Install it with:"
+            echo "  pip install detect-secrets"
+            exit 1
+        fi
+        detect-secrets scan --baseline .secrets.baseline
+        if [ $? -ne 0 ]; then
+            echo ""
+            echo "Potential secrets detected."
+            echo "Update baseline if necessary:"
+            echo "  detect-secrets scan > .secrets.baseline"
+            exit 1
+        fi
+    fi
+
+    # Run tests
+    #if [ -d "tests" ]; then
+    #    echo "Running backend tests with pytest..."
+    #    if ! command -v pytest &> /dev/null; then
+    #        echo "pytest is not installed. Install it with:"
+    #        echo "  pip install pytest"
+    #        exit 1
+    #    fi
+    #    pytest -q --disable-warnings --maxfail=1 tests
+    #    if [ $? -ne 0 ]; then
+    #        echo ""
+    #        echo "Some tests failed. Fix them and try again."
+    #        exit 1
+    #    fi
+    #fi
+fi
+
+echo "All pre-commit checks passed."
