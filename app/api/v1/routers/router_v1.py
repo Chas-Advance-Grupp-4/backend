@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.v1.endpoints import auth, users, shipment,control_unit
+from app.api.v1.endpoints import auth, users, shipment, control_unit
 
 router = APIRouter()
 
@@ -14,4 +14,6 @@ router.include_router(users.router, prefix="/users", tags=["Users (admin)"])
 router.include_router(shipment.router, prefix="/shipments", tags=["Shipments"])
 
 # Control Unit data management under /control-unit
-router.include_router(control_unit.router, prefix="/control-unit", tags=["Control Unit"])
+router.include_router(
+    control_unit.router, prefix="/control-unit", tags=["Control Unit"]
+)

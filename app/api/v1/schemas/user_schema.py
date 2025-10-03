@@ -1,6 +1,7 @@
 from pydantic import BaseModel, field_validator, Field
 from datetime import datetime
 from typing import Literal
+import uuid
 
 
 def not_empty(field_name: str, value: str) -> str:
@@ -32,7 +33,7 @@ class UserCreate(UserBase):
 
 
 class UserRead(UserBase):
-    id: str
+    id: uuid.UUID
     created_at: datetime
     model_config = {"from_attributes": True}
 

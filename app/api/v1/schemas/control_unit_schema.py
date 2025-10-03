@@ -1,45 +1,35 @@
 from pydantic import BaseModel, field_validator
 from uuid import UUID
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Dict, Any
 
-# Create schema
-class ControlUnitDataCreate(BaseModel):
-    shipment_id: UUID
-    control_unit_id: str
+
+class ControlUnitDataBase(BaseModel):
+    sensor_unit_id: UUID
+    control_unit_id: UUID
+    humidity: Dict[str, Any]
+    temperature: Dict[str, Any]
     timestamp: Optional[datetime] = None
-    sensor_value: dict
-    command: Optional[dict] = None
 
-    @field_validator("control_unit_id")
-    def control_unit_id_not_empty(cls, v):
-        if not v.strip():
-            raise ValueError("control_unit_id cannot be empty")
-        return v
-
-    @field_validator("sensor_value")
-    def sensor_value_must_have_required_keys(cls, v):
-        required_keys = ["temperature", "pressure"]
-        for key in required_keys:
-            if key not in v:
-                raise ValueError(f"sensor_value must contain '{key}'")
+    @field_validator("humidity", "temperature")
+    def must_not_be_empty(cls, v):
+        if not isinstance(v, dict) or not v:
+            raise ValueError("Field cannot be empty")
         return v
 
 
-# Update schema 
+class ControlUnitDataCreate(ControlUnitDataBase):
+    pass
+
+
 class ControlUnitDataUpdate(BaseModel):
-    sensor_value: Optional[dict] = None
-    command: Optional[dict] = None
+    humidity: Optional[Dict[str, Any]] = None
+    temperature: Optional[Dict[str, Any]] = None
+    timestamp: Optional[datetime] = None
 
 
-# Read schema 
-class ControlUnitDataRead(BaseModel):
+class ControlUnitDataRead(ControlUnitDataBase):
     id: UUID
-    shipment_id: UUID
-    control_unit_id: str
-    timestamp: datetime
-    sensor_value: dict
-    command: Optional[dict] = None
 
     class Config:
-        from_attributes = True
+        orm_mode = True

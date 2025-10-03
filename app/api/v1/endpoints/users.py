@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from app.dependencies import get_db, require_roles
 from app.api.v1.schemas.user_schema import UserRead, UserUpdate
 from app.services import user_service
+import uuid
 
 router = APIRouter()
 
@@ -17,7 +18,7 @@ async def list_users(db: DbSession, _: AdminOnly):
 
 
 @router.get("/{user_id}", response_model=UserRead, summary="Get user by id (admin)")
-async def get_user(user_id: str, db: DbSession, _: AdminOnly):
+async def get_user(user_id: uuid.UUID, db: DbSession, _: AdminOnly):
     user = user_service.get_user_by_id(db, user_id)
     if not user:
         raise HTTPException(
@@ -27,7 +28,9 @@ async def get_user(user_id: str, db: DbSession, _: AdminOnly):
 
 
 @router.patch("/{user_id}", response_model=UserRead, summary="Update user (admin)")
-async def update_user(user_id: str, payload: UserUpdate, db: DbSession, _: AdminOnly):
+async def update_user(
+    user_id: uuid.UUID, payload: UserUpdate, db: DbSession, _: AdminOnly
+):
     update_dict = payload.model_dump(exclude_unset=True)
     if not update_dict:
         raise HTTPException(
@@ -44,7 +47,7 @@ async def update_user(user_id: str, payload: UserUpdate, db: DbSession, _: Admin
 @router.delete(
     "/{user_id}", status_code=status.HTTP_204_NO_CONTENT, summary="Delete user (admin)"
 )
-async def delete_user(user_id: str, db: DbSession, _: AdminOnly):
+async def delete_user(user_id: uuid.UUID, db: DbSession, _: AdminOnly):
     ok = user_service.delete_user(db, user_id)
     if not ok:
         raise HTTPException(
