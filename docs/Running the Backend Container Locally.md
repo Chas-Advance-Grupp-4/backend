@@ -16,13 +16,7 @@ FRONTEND_URL=< frontend-url >
 
 Note: Do not commit your .env file to GitHub. Keep it local or use secrets.  
 
-### Building the Docker Image ### 
-
-From the project root, run:  
-for develop image with latest updates:  
-docker build -t annaschwartzchas/chas_advance_backend:develop-latest .  
-for main image with latest stable version:  
-docker build -t annaschwartzchas/chas_advance_backend:main-latest .    
+If you don't want the backend repo, just create a env file with the variables above, place it in a folder and then run the docker run command from that folder! 
 
 ### Running the Container ### 
 
@@ -65,10 +59,12 @@ docker rm backend_local
 
 ### Notes ### 
 
+Multi-arch images allow you to run the same image on AMD64 or ARM64 without rebuilding
+
 Running the container locally does not expose your backend to the internet as long as you access it via localhost.
 
 Ensure your .env has correct database and secret credentials for local development.
 
 Use the health endpoint to verify the container started correctly.
 
-The container is not runned in reload mode, which means you have to restart the container if you make changes in the code. 
+The container is not running in reload mode, which means you have to restart the container if you make changes in the code. 

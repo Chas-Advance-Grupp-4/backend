@@ -1,106 +1,98 @@
-name: CI v1 Tests, Build docker image and Push to Docker Hub. 
+name: CI v1 Tests, Build docker image and Push to Docker Hub.
 
-on: 
+on:
   push:
     branches:
-      - main
-      - develop
-      
+      # - main
+      # - develop
+      - 77-7126-refactor-workflow-that-publishes-docker-image
   workflow_dispatch:
 
-jobs: 
-  Tests:
+jobs:
+  tests:
+    name: Run Tests
     runs-on: ubuntu-latest
 
     steps:
-        - name: Checkout repository
-          uses: actions/checkout@v5
+      - name: Checkout repository
+        uses: actions/checkout@v5
 
-        - name: Set up Python environment
-          uses: actions/setup-python@v6
-          with: 
-            python-version: '3.13'
-        
-        - name: Install dependencies
-          run: |
-            python -m pip install --upgrade pip
-            pip install -r requirements.txt
-        
-        - name: Run tests
-          run: pytest -v 
-        
-        - name: All tests passed
-          if: success()
-          run: echo "All tests passed!"
+      - name: Set up Python environment
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
 
-        - name: Log in to Docker Hub
-          uses: docker/login-action@v2
-          with:
-            username: ${{ secrets.DOCKERHUB_USERNAME }}
-            password: ${{ secrets.DOCKERHUB_ACCESS_TOKEN }}
-            
-        - name: Build Docker Image
-          run: |
-            BRANCH=${GITHUB_REF##*/}
-            if [ "$BRANCH" == "main" ]; then
-              IMAGE_TAG="main-latest"
-            elif [ "$BRANCH" == "develop" ]; then
-                IMAGE_TAG="develop-latest"
-            else
-              IMAGE_TAG="latest"
-            fi
-            echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
-            docker build -t annaschwartzchas/chas_advance_backend:$IMAGE_TAG .
+      - name: Run tests
+        run: pytest -v
 
-        - name: Test Docker image with temporary Postgres database
-          run: |
-            # Create a Docker network
-            docker network create ci_network
-            # Start a temporary Postgres container (Can be changed to a real testdatabase later on)  
-            docker run -d --name ci_postgres --network ci_network \
-            -e POSTGRES_USER=test \
-            -e POSTGRES_PASSWORD=test \
-            -e POSTGRES_DB=testdb \
-            -p 5432:5432 \
-            postgres:15
+      - name: All tests passed
+        if: success()
+        run: echo "All tests passed!"
 
-            # Wait for Postgre to be ready
-            until docker exec ci_postgres pg_isready -U test -d testdb; do
-              echo "Waiting for Postgres..."
-              sleep 2
-            done
+  docker:
+    name: Builds and Tests Docker Images
+    runs-on: ubuntu-latest
+    needs: tests
 
-            export DATABASE_URL="postgresql+psycopg://test:test@ci_postgres:5432/testdb"
-            
-            sudo apt-get update && sudo apt-get install -y jq
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
 
-            docker run -d --name backend_test --network ci_network -p 8000:8000 -e DATABASE_URL="$DATABASE_URL" -e SECRET_KEY="test" -e ACCESS_TOKEN_EXPIRE_MINUTES=30 annaschwartzchas/chas_advance_backend:${{ env.IMAGE_TAG }}
-           
-            sleep 20
+      - name: Build amd64 Docker Image for testing
+        run: docker buildx build --platform linux/amd64 -t backend_test_amd64 --load .
 
-            HEALTH_CHECK_PASSED=false
-            for i in {1..15}; do
-              if curl -s http://localhost:8000/health | jq -e '.status=="ok"' > /dev/null; then
-                echo "Health check passed!"
-                HEALTH_CHECK_PASSED=true
-                break
-              else
-                echo "Waiting for the container to start..."
-                sleep 5
-                docker logs backend_test
-              fi
-            done
+      - name: Test Docker image
+        run: .github/scripts/tests.sh backend_test_amd64
+        env:
+          TEST_DB_USER: ${{ secrets.TEST_DB_USER }}
+          TEST_DB_PASSWORD: ${{ secrets.TEST_DB_PASSWORD }}
+          TEST_DB_NAME: ${{ secrets.TEST_DB_NAME }}
+          TEST_DB_PORT: ${{ secrets.TEST_DB_PORT }}
+          SECRET_KEY_TEST: ${{ secrets.SECRET_KEY_TEST }}
 
-            docker stop backend_test ci_postgres
-            docker rm backend_test ci_postgres
-            docker network rm ci_network
+      - name: Build arm64 Docker Image for testing
+        run: docker buildx build --platform linux/arm64 -t backend_test_arm64 --load .
 
-            if [ "$HEALTH_CHECK_PASSED" = false ]; then
-              echo "Health check failed after 10 attempts"
-              exit 1
-            fi    
-        
-        - name: Push Docker Image to Docker Hub
-          run: |
-            docker push annaschwartzchas/chas_advance_backend:${{ env.IMAGE_TAG }}
+      - name: Test Docker image
+        run: .github/scripts/tests.sh backend_test_arm64
+        env:
+          TEST_DB_USER: ${{ secrets.TEST_DB_USER }}
+          TEST_DB_PASSWORD: ${{ secrets.TEST_DB_PASSWORD }}
+          TEST_DB_NAME: ${{ secrets.TEST_DB_NAME }}
+          TEST_DB_PORT: ${{ secrets.TEST_DB_PORT }}
+          SECRET_KEY_TEST: ${{ secrets.SECRET_KEY_TEST }}
+
+  docker_push:
+    name: Push Multi-Arch Docker Image
+    runs-on: ubuntu-latest
+    needs: docker
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Set docker Image tag
+        run: |
+          BRANCH=${GITHUB_REF##*/}
+          if [ "$BRANCH" == "main" ]; then
+            IMAGE_TAG="main-latest"
+          elif [ "$BRANCH" == "develop" ]; then
+              IMAGE_TAG="develop-latest"
+          else
+            IMAGE_TAG="latest"
+          fi
+          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_ACCESS_TOKEN }}
+
+      - name: Build & Push Multi-Arch Docker Image
+        run: |
+          docker buildx build --platform linux/amd64,linux/arm64 -t annaschwartzchas/chas_advance_backend:${{ env.IMAGE_TAG }} --push .
