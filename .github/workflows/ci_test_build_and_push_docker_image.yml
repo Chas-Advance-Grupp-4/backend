@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  tests:
+  Tests:
     name: Run Tests
     runs-on: ubuntu-latest
 
@@ -34,10 +34,10 @@ jobs:
         if: success()
         run: echo "All tests passed!"
 
-  docker:
-    name: Builds and Tests Docker Images
+  Docker_Build_and_Test_AMD64_Image:
+    name: Builds and Tests AMD64 Docker Image
     runs-on: ubuntu-latest
-    needs: tests
+    needs: Tests
 
     steps:
       - name: Checkout repository
@@ -58,8 +58,20 @@ jobs:
           TEST_DB_PORT: ${{ secrets.TEST_DB_PORT }}
           SECRET_KEY_TEST: ${{ secrets.SECRET_KEY_TEST }}
 
+  Docker_Build_and_Test_ARM64_Image:
+    name: Builds and Tests ARM64 Docker Image
+    runs-on: ubuntu-24.04-arm
+    needs: Tests
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
       - name: Build arm64 Docker Image for testing
         run: docker buildx build --platform linux/arm64 -t backend_test_arm64 --load .
+
+      - name: Make scripts executable
+        run: chmod +x .github/scripts/tests.sh
 
       - name: Test Docker image
         run: .github/scripts/tests.sh backend_test_arm64
@@ -70,10 +82,11 @@ jobs:
           TEST_DB_PORT: ${{ secrets.TEST_DB_PORT }}
           SECRET_KEY_TEST: ${{ secrets.SECRET_KEY_TEST }}
 
-  docker_push:
+  Docker_Push:
     name: Push Multi-Arch Docker Image
     runs-on: ubuntu-latest
-    needs: docker
+    needs:
+      [Docker_Build_and_Test_AMD64_Image, Docker_Build_and_Test_ARM64_Image]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
