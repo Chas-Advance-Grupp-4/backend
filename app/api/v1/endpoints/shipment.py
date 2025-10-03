@@ -1,6 +1,7 @@
 from typing import Annotated, List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from uuid import UUID
 from app.dependencies import get_db, require_roles, get_current_user
 from app.services import shipment_service
 from app.api.v1.schemas.shipment_schema import ShipmentCreate, ShipmentRead
@@ -55,11 +56,11 @@ async def fetch_current_users_shipments(
     """
     if current_user.role == "driver":
         shipments = shipment_service.get_shipments(
-            db=db, user_role="driver", user_id=str(current_user.id)
+            db=db, user_role="driver", user_id=current_user.id
         )
     elif current_user.role == "customer":
         shipments = shipment_service.get_shipments(
-            db=db, user_role="customer", user_id=str(current_user.id)
+            db=db, user_role="customer", user_id=current_user.id
         )
     else:
         shipments = []
@@ -67,7 +68,7 @@ async def fetch_current_users_shipments(
 
 
 @router.get("/{shipment_id}", response_model=ShipmentRead, summary="Get shipment by ID")
-async def get_shipment(shipment_id: str, db: DbSession):
+async def get_shipment(shipment_id: UUID, db: DbSession):
     shipment = shipment_service.get_shipment_by_id(db, shipment_id)
     if not shipment:
         raise HTTPException(
@@ -80,8 +81,8 @@ async def get_shipment(shipment_id: str, db: DbSession):
     "/{shipment_id}", response_model=ShipmentRead, summary="Update shipment (admin)"
 )
 async def update_shipment(
-    shipment_id: str,
-    driver_id: str | None = None,
+    shipment_id: UUID,
+    driver_id: UUID | None = None,
     db: DbSession = DbSession,
     _: AdminOnly = AdminOnly,
 ):
@@ -96,7 +97,7 @@ async def update_shipment(
 @router.delete(
     "/{shipment_id}", response_model=ShipmentRead, summary="Delete shipment (admin)"
 )
-async def delete_shipment(shipment_id: str, db: DbSession, _: AdminOnly):
+async def delete_shipment(shipment_id: UUID, db: DbSession, _: AdminOnly):
     deleted = shipment_service.delete_shipment(db, shipment_id)
     if not deleted:
         raise HTTPException(

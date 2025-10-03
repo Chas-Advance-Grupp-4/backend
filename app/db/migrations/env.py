@@ -5,6 +5,7 @@ from alembic import context
 from app.db.connection import Base
 from app.models.user_model import User
 from app.models.shipment_model import Shipment
+from app.models.control_unit_model import ControlUnitData
 
 
 # from app.models.user_model import Base
