@@ -29,6 +29,7 @@ app.add_middleware(
 # Routers
 app.include_router(v1_router, prefix="/api/v1")
 
+
 @app.get("/health")
 def health_check():
     return {"status": "ok", "message": "API is running"}
