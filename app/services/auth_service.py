@@ -5,7 +5,6 @@ from app.utils.JWT import create_access_token
 from app.services.user_service import get_user_by_username
 from datetime import timedelta
 from app.config.settings import settings
-import uuid
 
 
 def authenticate_user(db: Session, username: str, password: str) -> User | None:
