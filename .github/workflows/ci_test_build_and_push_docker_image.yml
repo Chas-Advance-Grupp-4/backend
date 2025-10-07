@@ -91,11 +91,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5
 
-      - name: Read VERSION file
+      - name: Determine next Docker tag
         run: |
-          IMAGE_TAG=$(cat VERSION)
-          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
-          echo "Using image tag: $IMAGE_TAG"
+          chmod +x .github/scripts/version.sh
+          .github/scripts/version.sh
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
