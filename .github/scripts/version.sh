@@ -19,10 +19,6 @@ elif [ "$BRANCH" == "develop" ]; then
     # Minor ökar med 1
     NEXT_MINOR=$((MINOR + 1))
     IMAGE_TAG="${MAJOR}.${NEXT_MINOR}"
-elif [ "$BRANCH" == "77-7126-refactor-workflow-that-publishes-docker-image" ]; then
-    # Minor ökar med 1
-    NEXT_MINOR=$((MINOR + 1))
-    IMAGE_TAG="${MAJOR}.${NEXT_MINOR}"
 else
     IMAGE_TAG="latest"
 fi

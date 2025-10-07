@@ -48,18 +48,20 @@ Runs .github/scripts/tests.sh with the ARM64 image to ensure it starts and /heal
    
 Checkout Repository
 
+Determine next Docker tag
+
 Set Docker image tag
-develop-latest for develop branch
-
-main-latest for main branch
-
-latest for other branches
+Reads VERSION file, increases minor version for develop and major version for main, eg:
+main 1.0, 2.0, ...
+develop 1.1, 1.2, ... 
 
 Log in to Docker Hub 
 Uses GitHub secrets for username and access token.  
 
 Build and Push multi-architecture Docker image to Docker Hub  
 Uses docker buildx build --platform linux/amd64,linux/arm64 --push to push a single multi-arch image to Docker Hub.
+develop gets taged with accurate VERSION number and a latest tag
+main gets tagged with accurate VERSION number. Uses --build arg VERSION=${IMAGE_TAG} to set correct version in docker-image and present it when container starts.
 
 #### Environment Variables & Secrets ####  
 TEST_DB_USER, TEST_DB_PASSWORD, TEST_DB_NAME, TEST_DB_PORT: Used by the test script to configure the temporary Postgres database.
@@ -82,6 +84,8 @@ Keep secrets (database credentials, Docker Hub token) safe in GitHub Actions sec
 
 Use the health check endpoint to validate that the container runs before pushing.  
 
+Version handling is maintained manually via the VERSION file, remember to update that file after push to develop or main! 
+
 #### Notes #### 
 CI runs on ubuntu-latest; behavior may differ slightly from Windows or macOS.  
 
@@ -91,4 +95,6 @@ Health check uses the /health endpoint.
 
 Docker images for develop and main are independent and pushed with different tags.  
 
-Versions numbers will be implemented later on, for now, *-latest tags are used.  
+Docker images for develop and main is pushed with different tags (1.1, 1.2, ... and 2.0, 3.0, ...)
+
+Version number in docker image is maintained MANUALLY in VERSIONFILE, and the latest image number should be entered in the file after push to docker hub. Just replace the exisiting number with the new. The version number is used when the container is build and makes shore you know what version you are running by presenting it at container start. 

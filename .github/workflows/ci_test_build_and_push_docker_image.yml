@@ -3,9 +3,8 @@ name: CI v2 Tests, Build docker image and Push to Docker Hub.
 on:
   push:
     branches:
-      #- main
-      #- develop
-      - 77-7126-refactor-workflow-that-publishes-docker-image
+      - main
+      - develop
   workflow_dispatch:
 
 jobs:
