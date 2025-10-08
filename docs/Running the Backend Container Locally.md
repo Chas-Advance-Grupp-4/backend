@@ -30,7 +30,7 @@ docker run -d \
   --name backend_local \
   -p 8000:8000 \
   --env-file .env \
-  annaschwartzchas/chas_advance_backend:<your-develop-version>
+  annaschwartzchas/chas_advance_backend:< your-develop-version >
 
 
 Example:
@@ -42,16 +42,17 @@ docker run -d \
   --name backend_local \
   -p 8000:8000 \
   --env-file .env \
-  annaschwartzchas/chas_advance_backend:<your-main-version>
+  annaschwartzchas/chas_advance_backend:< your-main-version >
 
 
 Example:
 
 docker run -d --name backend_local -p 8000:8000 --env-file .env annaschwartzchas/chas_advance_backend:2.0
 
-Tip: You can also use the latest tag for testing the most recent develop image.
-Example:
-docker run -d --name backend_local -p 8000:8000 --env-file .env annaschwartzchas/chas_advance_backend:latest
+Tip: You can also use the latest tag for testing the most recent develop image.  
+
+Example:  
+docker run -d --name backend_local -p 8000:8000 --env-file .env annaschwartzchas/chas_advance_backend:latest  
 
 -d runs the container in detached mode.
 
