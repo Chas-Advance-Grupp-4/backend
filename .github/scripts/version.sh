@@ -1,24 +1,52 @@
 #!/bin/bash
 set -e
 
-# Hämta branch name
+echo "Running version validation and tag generation..."
+
 BRANCH=${GITHUB_REF##*/}
 
-# Hämta befintliga tags
-VERSION=$(cat VERSION || echo "1.0")
+# Read the VERSION file, default to "0.0" if not found
+VERSION=$(cat VERSION 2>/dev/null || echo "0.0")
 
-# Dela upp major och minor
-MAJOR=${VERSION%%.*}
-MINOR=${VERSION##*.}
+# Control that VERSION is in correct format, e.g. 1.0, 2.1 etc
+if ! echo "$VERSION" | grep -qE '^[0-9]+\.[0-9]+$'; then
+  echo "ERROR: VERSION must be in format 'major.minor' (e.g. '1.1', '2.0')."
+  echo "Current value: $VERSION"
+  exit 1
+fi
+
+# Fetch the branch to compare against
+git fetch origin $BRANCH || true
+BASE_VERSION=$(git show origin/$BRANCH:VERSION 2>/dev/null || echo "none")
+
+echo "Branch: $BRANCH"
+echo "Base VERSION: $BASE_VERSION"
+echo "New VERSION:  $VERSION"
+
+# If no previous version found, allow initial version
+if [ "$BASE_VERSION" = "none" ]; then
+  echo "No previous VERSION found on $BRANCH — allowing initial version."
+else
+  # Split up version numbers into major and minor parts
+  BASE_MAJOR=${BASE_VERSION%%.*}
+  BASE_MINOR=${BASE_VERSION##*.}
+  HEAD_MAJOR=${VERSION%%.*}
+  HEAD_MINOR=${VERSION##*.}
+
+  #Check that Current Version is bigger than earlier(Base) Version
+  if [ "$HEAD_MAJOR" -lt "$BASE_MAJOR" ] || { [ "$HEAD_MAJOR" -eq "$BASE_MAJOR" ] && [ "$HEAD_MINOR" -le "$BASE_MINOR" ]; }; then
+    echo "ERROR: VERSION must be greater than previous version ($BASE_VERSION)."
+    exit 1
+  fi
+fi
+
+echo "VERSION is valid and newer than previous!"
 
 if [ "$BRANCH" == "main" ]; then
-    # Huvudrelease, major ökar med 1
-    NEXT_MAJOR=$((MAJOR + 1))
-    IMAGE_TAG="${NEXT_MAJOR}.0"
+    
+    IMAGE_TAG="${HEAD_MAJOR}.0"
 elif [ "$BRANCH" == "develop" ]; then
-    # Minor ökar med 1
-    NEXT_MINOR=$((MINOR + 1))
-    IMAGE_TAG="${MAJOR}.${NEXT_MINOR}"
+    IMAGE_TAG="${HEAD_MAJOR}.${HEAD_MINOR}"
 else
     IMAGE_TAG="latest"
 fi

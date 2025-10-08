@@ -48,12 +48,10 @@ Runs .github/scripts/tests.sh with the ARM64 image to ensure it starts and /heal
    
 Checkout Repository
 
-Determine next Docker tag
+Runs version validation
 
-Set Docker image tag
-Reads VERSION file, increases minor version for develop and major version for main, eg:
-main 1.0, 2.0, ...
-develop 1.1, 1.2, ... 
+Validates so the VERSIONS document is updated with next version so there won't be duplicates of image versions with the same number.  
+Validates so the number is in correct format, 1.1 1.2 1.0 2.0 ...  
 
 Log in to Docker Hub 
 Uses GitHub secrets for username and access token.  
@@ -84,7 +82,7 @@ Keep secrets (database credentials, Docker Hub token) safe in GitHub Actions sec
 
 Use the health check endpoint to validate that the container runs before pushing.  
 
-Version handling is maintained manually via the VERSION file, remember to update that file after push to develop or main! 
+Version handling is maintained manually via the VERSION file, remember to update that file before push to develop or main! 
 
 #### Notes #### 
 CI runs on ubuntu-latest; behavior may differ slightly from Windows or macOS.  
@@ -97,4 +95,4 @@ Docker images for develop and main are independent and pushed with different tag
 
 Docker images for develop and main is pushed with different tags (1.1, 1.2, ... and 2.0, 3.0, ...)
 
-Version number in docker image is maintained MANUALLY in VERSIONFILE, and the latest image number should be entered in the file after push to docker hub. Just replace the exisiting number with the new. The version number is used when the container is build and makes shore you know what version you are running by presenting it at container start. 
+Version number in docker image is maintained MANUALLY in VERSIONFILE, and the next image number should be entered in the file before push to docker hub. Just replace the exisiting number with the new. The version number is used when the container is build and makes shore you know what version you are running by presenting it at container start. 

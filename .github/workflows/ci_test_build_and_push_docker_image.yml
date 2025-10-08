@@ -90,7 +90,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5
 
-      - name: Determine next Docker tag
+      - name: Run version validation
         run: |
           chmod +x .github/scripts/version.sh
           .github/scripts/version.sh
@@ -108,13 +108,15 @@ jobs:
         run: |
           if [ "${GITHUB_REF##*/}" == "develop" ]; then
             docker buildx build --platform linux/amd64,linux/arm64 \
-              -t annaschwartzchas/chas_advance_backend:${IMAGE_TAG} \
+              -t annaschwartzchas/chas_advance_backend:${{ env.IMAGE_TAG }} \
               -t annaschwartzchas/chas_advance_backend:latest \
-              --build-arg VERSION=${IMAGE_TAG} \
+              --build-arg VERSION=${{ env.IMAGE_TAG }} \
+              --push .
+          else if [ "${GITHUB_REF##*/}" == "main" ]; then
+            docker buildx build --platform linux/amd64,linux/arm64 \
+              -t annaschwartzchas/chas_advance_backend:${{ env.IMAGE_TAG }} \
+              --build-arg VERSION=${{ env.IMAGE_TAG }} \
               --push .
           else
-            docker buildx build --platform linux/amd64,linux/arm64 \
-              -t annaschwartzchas/chas_advance_backend:${IMAGE_TAG} \
-              --build-arg VERSION=${IMAGE_TAG} \
-              --push .
+            echo "Not pushing image, branch is not develop or main."
           fi
