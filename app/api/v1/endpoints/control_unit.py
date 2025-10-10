@@ -23,14 +23,14 @@ router = APIRouter()
 
 # For individual readings (for testing only)
 @router.post(
-    "/", response_model=ControlUnitDataRead, status_code=status.HTTP_201_CREATED
+    "/single-reading", response_model=ControlUnitDataRead, status_code=status.HTTP_201_CREATED
 )
 def create(data: ControlUnitDataCreate, db: Session = Depends(get_db)):
     return create_control_unit_data(db, data)
 
 
 # Grouped readings used by Control Unit
-@router.post("/readings", status_code=status.HTTP_201_CREATED)
+@router.post("/", status_code=status.HTTP_201_CREATED)
 def receive_device_data(data: DeviceData, db: Session = Depends(get_db)):
     try:
         save_device_data(data, db)
