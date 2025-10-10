@@ -15,9 +15,8 @@ if ! echo "$VERSION" | grep -qE '^[0-9]+\.[0-9]+$'; then
   exit 1
 fi
 
-# Fetch the branch to compare against
-git fetch origin $BRANCH || true
-BASE_VERSION=$(git show origin/$BRANCH:VERSION 2>/dev/null || echo "none")
+# Fetch the commit before to compare against
+BASE_VERSION=$(git show HEAD~1:VERSION 2>/dev/null || echo "none")
 
 echo "Branch: $BRANCH"
 echo "Base VERSION: $BASE_VERSION"
