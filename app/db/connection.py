@@ -4,7 +4,7 @@ from app.config.settings import settings
 
 # Create the engine for PostgreSQL
 engine = create_engine(
-    settings.DATABASE_URL,  
+    settings.DATABASE_URL,
     echo=False,
 )
 
