@@ -89,6 +89,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
+        with:
+          fetch-depth: 2 # Fetch at least two commits to compare VERSION file
 
       - name: Run version validation
         run: |

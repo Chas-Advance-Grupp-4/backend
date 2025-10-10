@@ -1,6 +1,5 @@
 FROM python:3.13-slim
 
-#Versionhandling
 ARG VERSION
 ENV APP_VERSION=$VERSION
 LABEL org.opencontainers.image.version=$VERSION
