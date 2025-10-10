@@ -114,7 +114,7 @@ jobs:
               -t annaschwartzchas/chas_advance_backend:latest \
               --build-arg VERSION=${{ env.IMAGE_TAG }} \
               --push .
-          else if [ "${GITHUB_REF##*/}" == "main" ]; then
+          elif [ "${GITHUB_REF##*/}" == "main" ]; then
             docker buildx build --platform linux/amd64,linux/arm64 \
               -t annaschwartzchas/chas_advance_backend:${{ env.IMAGE_TAG }} \
               --build-arg VERSION=${{ env.IMAGE_TAG }} \
