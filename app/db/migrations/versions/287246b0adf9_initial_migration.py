@@ -27,16 +27,9 @@ def upgrade() -> None:
         sa.Column("id", sa.UUID(), nullable=False),
         sa.Column("sensor_unit_id", sa.UUID(), nullable=False),
         sa.Column("control_unit_id", sa.UUID(), nullable=False),
-        sa.Column(
-            "timestamp",
-            sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
-            nullable=False,
-        ),
+        sa.Column("timestamp", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
         sa.Column("humidity", postgresql.JSONB(astext_type=sa.Text()), nullable=False),
-        sa.Column(
-            "temperature", postgresql.JSONB(astext_type=sa.Text()), nullable=False
-        ),
+        sa.Column("temperature", postgresql.JSONB(astext_type=sa.Text()), nullable=False),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_table(

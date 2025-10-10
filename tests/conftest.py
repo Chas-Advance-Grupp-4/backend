@@ -11,23 +11,21 @@ os.environ["ACCESS_TOKEN_EXPIRE_MINUTES"] = "30"
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from app.db.connection import Base 
-from app.dependencies import get_db 
+from app.db.connection import Base
+from app.dependencies import get_db
 from app.main import app
 from app.models.user_model import User
 
 
 # --- Engine for tests ---
-engine = create_engine(
-    os.environ["DATABASE_URL"],
-    connect_args={"check_same_thread": False}  # Important for FastAPI/TestClient
-)
+engine = create_engine(os.environ["DATABASE_URL"], connect_args={"check_same_thread": False})  # Important for FastAPI/TestClient
 
 # --- Create all tables before tests ---
 Base.metadata.create_all(bind=engine)
 
 # --- SessionLocal for tests ---
 TestingSessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
+
 
 # --- Fixture for test database session per test ---
 @pytest.fixture(scope="function")
@@ -42,12 +40,14 @@ def db_session():
         session.rollback()
         session.close()
 
+
 # --- Fixture for FastAPI TestClient ---
 @pytest.fixture(scope="function")
 def client(db_session):
     """
     Creates TestClient that uses the test database.
     """
+
     def override_get_db():
         yield db_session
 
@@ -57,6 +57,7 @@ def client(db_session):
         yield c
 
     app.dependency_overrides.clear()
+
 
 # --- Teardown after all tests ---
 @pytest.fixture(scope="session", autouse=True)
@@ -77,6 +78,7 @@ def teardown():
                 break
             except PermissionError:
                 time.sleep(0.1)
+
 
 # --- Fixture to clean users table before each test ---
 @pytest.fixture(autouse=True)

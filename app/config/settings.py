@@ -12,9 +12,7 @@ class Settings(BaseSettings):
     ENV: str = "development"
     FRONTEND_URL: str = "http://localhost:5173"
 
-    model_config = SettingsConfigDict(
-        env_file=Path(__file__).parent.parent.parent / ".env", extra="ignore"
-    )
+    model_config = SettingsConfigDict(env_file=Path(__file__).parent.parent.parent / ".env", extra="ignore")
 
 
 settings = Settings()

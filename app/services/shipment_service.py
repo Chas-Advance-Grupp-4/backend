@@ -32,15 +32,11 @@ def create_shipment(db: Session, shipment: ShipmentCreate):
 # ----------------------
 # Read multiple shipments
 # ----------------------
-def get_shipments(
-    db: Session, user_role: str, user_id: str | UUID, skip: int = 0, limit: int = 100
-):
+def get_shipments(db: Session, user_role: str, user_id: str | UUID, skip: int = 0, limit: int = 100):
     user_id = ensure_uuid(user_id)
     query = db.query(Shipment)
     if user_role == "customer":
-        query = query.filter(
-            (Shipment.sender_id == user_id) | (Shipment.receiver_id == user_id)
-        )
+        query = query.filter((Shipment.sender_id == user_id) | (Shipment.receiver_id == user_id))
     elif user_role == "driver":
         query = query.filter(Shipment.driver_id == user_id)
     return query.offset(skip).limit(limit).all()

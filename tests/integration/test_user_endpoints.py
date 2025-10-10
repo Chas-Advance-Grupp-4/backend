@@ -5,21 +5,20 @@ from uuid import uuid4
 
 client = TestClient(app)
 
+
 # Fixture to provide authentication headers for requests
 @pytest.fixture
 def auth_headers(client):
     unique_username = f"apiuser_{uuid4()}"
     user_data = {"username": unique_username, "password": "1234", "role": "customer"}
-    
+
     client.post("/api/v1/auth/register", json=user_data)
-    
-    login_resp = client.post("/api/v1/auth/login", json={
-        "username": unique_username,
-        "password": "1234"
-    })
+
+    login_resp = client.post("/api/v1/auth/login", json={"username": unique_username, "password": "1234"})
     token = login_resp.json()["access_token"]
-    
+
     return {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+
 
 def test_fetch_current_user(client, auth_headers):
     response = client.get("/api/v1/auth/me", headers=auth_headers)
@@ -27,15 +26,17 @@ def test_fetch_current_user(client, auth_headers):
     data = response.json()
     assert "username" in data
 
+
 def test_admin_list_users_requires_admin(client, auth_headers):
     response = client.get("/api/v1/users", headers=auth_headers)
     assert response.status_code == 403
+
 
 def test_admin_crud_users_flow(client):
     # Create admin
     admin_username = f"admin_{uuid4()}"
     client.post("/api/v1/auth/register", json={"username": admin_username, "password": "a", "role": "admin"})
-    
+
     login_resp = client.post("/api/v1/auth/login", json={"username": admin_username, "password": "a"})
     admin_token = login_resp.json()["access_token"]
     admin_headers = {"Authorization": f"Bearer {admin_token}", "Content-Type": "application/json"}

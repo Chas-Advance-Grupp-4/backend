@@ -23,14 +23,10 @@ def create_user(db: Session, user: UserCreate) -> UserRead:
     Hashes the password before saving.
     """
     if get_user_by_username(db, user.username):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Username already taken"
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Username already taken")
 
     hashed_password = get_password_hash(user.password)  # Hash the password
-    db_user = User(
-        username=user.username, hashed_password=hashed_password, role=user.role
-    )
+    db_user = User(username=user.username, hashed_password=hashed_password, role=user.role)
     db.add(db_user)
     db.commit()
     db.refresh(db_user)

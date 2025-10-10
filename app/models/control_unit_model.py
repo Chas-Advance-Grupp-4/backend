@@ -17,8 +17,6 @@ class ControlUnitData(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     sensor_unit_id = Column(UUID(as_uuid=True), nullable=False)
     control_unit_id = Column(UUID(as_uuid=True), nullable=False)
-    timestamp = Column(
-        DateTime(timezone=True), server_default=func.now(), nullable=False
-    )
+    timestamp = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     humidity = Column(JSONType, nullable=False)
     temperature = Column(JSONType, nullable=False)

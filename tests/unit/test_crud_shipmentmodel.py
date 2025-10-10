@@ -8,6 +8,7 @@ from app.models.shipment_model import Shipment
 from app.services import shipment_service
 from app.api.v1.schemas.shipment_schema import ShipmentCreate
 
+
 @pytest.fixture
 def db_session():
     engine = create_engine("sqlite:///:memory:")
@@ -17,19 +18,17 @@ def db_session():
     yield db
     db.close()
 
+
 @pytest.fixture
 def shipment_payload():
-    return ShipmentCreate(
-        shipment_number="Package 123",
-        sender_id=uuid4(),
-        receiver_id=uuid4(),
-        driver_id=None
-    )
+    return ShipmentCreate(shipment_number="Package 123", sender_id=uuid4(), receiver_id=uuid4(), driver_id=None)
+
 
 def test_create_shipment(db_session, shipment_payload):
     shipment = shipment_service.create_shipment(db_session, shipment_payload)
     assert shipment.id is not None
     assert shipment.shipment_number == shipment_payload.shipment_number
+
 
 def test_get_shipment_by_id(db_session, shipment_payload):
     created = shipment_service.create_shipment(db_session, shipment_payload)
@@ -37,9 +36,11 @@ def test_get_shipment_by_id(db_session, shipment_payload):
     assert fetched.id == created.id
     assert fetched.shipment_number == shipment_payload.shipment_number
 
+
 def test_get_shipment_by_id_not_found(db_session):
     fetched = shipment_service.get_shipment_by_id(db_session, uuid4())
     assert fetched is None
+
 
 def test_get_shipments_role_filter(db_session):
     sender_id = uuid4()
@@ -65,21 +66,25 @@ def test_get_shipments_role_filter(db_session):
     assert shipment2 in results_admin
     assert shipment3 in results_admin
 
+
 def test_update_shipment(db_session, shipment_payload):
     created = shipment_service.create_shipment(db_session, shipment_payload)
     new_driver_id = uuid4()
     updated = shipment_service.update_shipment(db_session, created.id, driver_id=new_driver_id)
     assert updated.driver_id == new_driver_id
 
+
 def test_update_shipment_not_found(db_session):
     updated = shipment_service.update_shipment(db_session, uuid4(), driver_id=uuid4())
     assert updated is None
+
 
 def test_delete_shipment(db_session, shipment_payload):
     created = shipment_service.create_shipment(db_session, shipment_payload)
     deleted = shipment_service.delete_shipment(db_session, created.id)
     assert deleted.id == created.id
     assert shipment_service.get_shipment_by_id(db_session, created.id) is None
+
 
 def test_delete_shipment_not_found(db_session):
     deleted = shipment_service.delete_shipment(db_session, uuid4())
