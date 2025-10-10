@@ -2,9 +2,33 @@ from sqlalchemy.orm import Session
 from uuid import UUID
 from app.models.control_unit_model import ControlUnitData
 from app.api.v1.schemas.control_unit_schema import (
+    ControlUnitDataBase,
     ControlUnitDataCreate,
     ControlUnitDataUpdate,
 )
+from datetime import datetime
+
+
+# -----------------------------
+# Create from grouped readings
+# -----------------------------
+def save_device_data(data: ControlUnitDataCreate, db: Session):
+    for group in data.timestamp_groups:
+        ts = datetime.fromtimestamp(group.timestamp)
+        for unit in group.sensor_units:
+            # Validate each reading with ControlUnitDataBase
+            validated = ControlUnitDataBase(
+                sensor_unit_id=unit.sensor_unit_id,
+                control_unit_id=data.control_unit_id,
+                timestamp=ts,
+                humidity={"value": unit.humidity},
+                temperature={"value": unit.temperature},
+            )
+
+            # Create database object from validated data
+            record = ControlUnitData(**validated.model_dump())
+            db.add(record)
+    db.commit()
 
 
 # -----------------------------
