@@ -37,9 +37,7 @@ def get_control_unit_data_by_id(db: Session, data_id: str | UUID):
 # -----------------------------
 # Update
 # -----------------------------
-def update_control_unit_data(
-    db: Session, data_id: str | UUID, update_data: ControlUnitDataUpdate
-):
+def update_control_unit_data(db: Session, data_id: str | UUID, update_data: ControlUnitDataUpdate):
     if isinstance(data_id, str):
         data_id = UUID(data_id)
     db_item = db.query(ControlUnitData).filter(ControlUnitData.id == data_id).first()

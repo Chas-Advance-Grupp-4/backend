@@ -1,0 +1,3 @@
+# line length settings for black
+[tool.black]
+line-length = 150

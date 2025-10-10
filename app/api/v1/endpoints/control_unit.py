@@ -18,9 +18,8 @@ from app.services.control_unit_service import (
 router = APIRouter()
 
 
-@router.post(
-    "/", response_model=ControlUnitDataRead, status_code=status.HTTP_201_CREATED
-)
+# For individual readings (for testing only)
+@router.post("/single-reading", response_model=ControlUnitDataRead, status_code=status.HTTP_201_CREATED)
 def create(data: ControlUnitDataCreate, db: Session = Depends(get_db)):
     return create_control_unit_data(db, data)
 
@@ -40,9 +39,7 @@ def read_single(data_id: UUID, db: Session = Depends(get_db)):
 
 @router.put("/{data_id}", response_model=ControlUnitDataRead)
 def update(data_id: UUID, update: ControlUnitDataUpdate, db: Session = Depends(get_db)):
-    item = update_control_unit_data(
-        db, str(data_id), update.model_dump(exclude_unset=True)
-    )
+    item = update_control_unit_data(db, str(data_id), update.model_dump(exclude_unset=True))
     if not item:
         raise HTTPException(status_code=404, detail="ControlUnitData not found")
     return item

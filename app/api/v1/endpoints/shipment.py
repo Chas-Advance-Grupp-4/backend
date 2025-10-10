@@ -23,9 +23,7 @@ DriverOnly = Annotated[None, Depends(require_roles(["driver"]))]  # if needed
 # --------------------
 
 
-@router.post(
-    "", response_model=ShipmentRead, summary="Create shipment (admin or customer)"
-)
+@router.post("", response_model=ShipmentRead, summary="Create shipment (admin or customer)")
 async def create_shipment(
     payload: ShipmentCreate,
     db: DbSession,
@@ -45,9 +43,7 @@ async def list_shipments(db: DbSession, _: AdminOnly):
     response_model=List[ShipmentRead],
     summary="Get your own shipments (driver or customer)",
 )
-async def fetch_current_users_shipments(
-    db: DbSession, current_user: Annotated[User, Depends(get_current_user)]
-):
+async def fetch_current_users_shipments(db: DbSession, current_user: Annotated[User, Depends(get_current_user)]):
     """
     Returns all shipments linked to the currently authenticated user.
     - Customer: returns shipments where user is sender or reciever.
@@ -55,13 +51,9 @@ async def fetch_current_users_shipments(
     - Admin: returns all shipments.
     """
     if current_user.role == "driver":
-        shipments = shipment_service.get_shipments(
-            db=db, user_role="driver", user_id=current_user.id
-        )
+        shipments = shipment_service.get_shipments(db=db, user_role="driver", user_id=current_user.id)
     elif current_user.role == "customer":
-        shipments = shipment_service.get_shipments(
-            db=db, user_role="customer", user_id=current_user.id
-        )
+        shipments = shipment_service.get_shipments(db=db, user_role="customer", user_id=current_user.id)
     else:
         shipments = []
     return shipments or []
@@ -71,15 +63,11 @@ async def fetch_current_users_shipments(
 async def get_shipment(shipment_id: UUID, db: DbSession):
     shipment = shipment_service.get_shipment_by_id(db, shipment_id)
     if not shipment:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Shipment not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Shipment not found")
     return shipment
 
 
-@router.patch(
-    "/{shipment_id}", response_model=ShipmentRead, summary="Update shipment (admin)"
-)
+@router.patch("/{shipment_id}", response_model=ShipmentRead, summary="Update shipment (admin)")
 async def update_shipment(
     shipment_id: UUID,
     driver_id: UUID | None = None,
@@ -88,19 +76,13 @@ async def update_shipment(
 ):
     updated = shipment_service.update_shipment(db, shipment_id, driver_id)
     if not updated:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Shipment not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Shipment not found")
     return updated
 
 
-@router.delete(
-    "/{shipment_id}", response_model=ShipmentRead, summary="Delete shipment (admin)"
-)
+@router.delete("/{shipment_id}", response_model=ShipmentRead, summary="Delete shipment (admin)")
 async def delete_shipment(shipment_id: UUID, db: DbSession, _: AdminOnly):
     deleted = shipment_service.delete_shipment(db, shipment_id)
     if not deleted:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Shipment not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Shipment not found")
     return deleted

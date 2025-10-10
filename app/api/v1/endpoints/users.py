@@ -21,36 +21,24 @@ async def list_users(db: DbSession, _: AdminOnly):
 async def get_user(user_id: uuid.UUID, db: DbSession, _: AdminOnly):
     user = user_service.get_user_by_id(db, user_id)
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     return user
 
 
 @router.patch("/{user_id}", response_model=UserRead, summary="Update user (admin)")
-async def update_user(
-    user_id: uuid.UUID, payload: UserUpdate, db: DbSession, _: AdminOnly
-):
+async def update_user(user_id: uuid.UUID, payload: UserUpdate, db: DbSession, _: AdminOnly):
     update_dict = payload.model_dump(exclude_unset=True)
     if not update_dict:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="No fields to update"
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No fields to update")
     updated = user_service.update_user(db, user_id, update_dict)
     if not updated:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     return updated
 
 
-@router.delete(
-    "/{user_id}", status_code=status.HTTP_204_NO_CONTENT, summary="Delete user (admin)"
-)
+@router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT, summary="Delete user (admin)")
 async def delete_user(user_id: uuid.UUID, db: DbSession, _: AdminOnly):
     ok = user_service.delete_user(db, user_id)
     if not ok:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     return None
