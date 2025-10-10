@@ -4,11 +4,11 @@ This document describes the GitHub Actions workflow for the backend, which autom
 ### Purpose ### 
 Runs backend tests automatically on pushes to develop or main.  
 
-Build Docker images for develop (develop-latest) and main (main-latest).  
+Build Docker images for both AMD64 and ARM64 for health testing.  
 
-Test the Docker image with a health check before pushing.  
+Test the Docker images with a health check before pushing.  
 
-Push Docker images to Docker Hub if tests and health check pass.  
+Push  multi-architecture Docker images to Docker Hub if tests and health checks passes.  
 
 Ensure consistent and reproducible environments across local development and CI.  
 
@@ -18,6 +18,7 @@ Automatic: On push to develop or main.
 Manual: Trigger via workflow_dispatch in GitHub Actions.  
 
 #### Steps ####  
+1. Tests
 Checkout repository – Fetches code from the current branch.  
 
 Set up Python environment – Installs Python 3.13 using setup-python@v6.  
@@ -28,24 +29,46 @@ Run tests – Executes pytest -v to run all backend tests; full output is printe
 
 All tests passed – Prints "All tests passed!" if tests succeed.  
 
-Log in to Docker Hub – Uses GitHub secrets for username and access token.  
+2. Docker - builds and Tests docker images
+Checkout repository
 
-Build Docker image – Builds the image and tags it according to the branch:  
+Build AMD64 Docker image for testing
+Builds an AMD64 image tagged as backend_test_amd64 using docker buildx --platform linux/amd64.
 
-develop-latest for the develop branch  
+Test Docker image
+Runs a health check test using .github/scripts/tests.sh with the AMD64 image. Checks /health endpoint.
 
-main-latest for the main branch  
+Build ARM64 Docker image for testing:
+Builds an ARM64 image tagged as backend_test_arm64 using docker buildx --platform linux/arm64.
 
-Test Docker image with health check – Runs the image in a container, waits for it to be ready, checks /health endpoint, stops and removes container.  
+Test Docker image
+Runs .github/scripts/tests.sh with the ARM64 image to ensure it starts and /health endpoint responds.
 
-Push Docker image to Docker Hub – Pushes the image if the health check succeeds.  
+3. Docker Push - Build & Push Multi-arch Docker image 
+   
+Checkout Repository
+
+Runs version validation
+
+Validates so the VERSIONS document is updated with next version so there won't be duplicates of image versions with the same number.  
+Validates so the number is in correct format, 1.1 1.2 1.0 2.0 ...  
+
+Log in to Docker Hub 
+Uses GitHub secrets for username and access token.  
+
+Build and Push multi-architecture Docker image to Docker Hub  
+Uses docker buildx build --platform linux/amd64,linux/arm64 --push to push a single multi-arch image to Docker Hub.
+develop gets taged with accurate VERSION number and a latest tag
+main gets tagged with accurate VERSION number. Uses --build arg VERSION=${IMAGE_TAG} to set correct version in docker-image and present it when container starts.
 
 #### Environment Variables & Secrets ####  
-DATABASE_URL – URL to the database. Stored as a GitHub secret.  
+TEST_DB_USER, TEST_DB_PASSWORD, TEST_DB_NAME, TEST_DB_PORT: Used by the test script to configure the temporary Postgres database.
 
-DOCKERHUB_USERNAME – Docker Hub username. Stored as a GitHub secret.  
+SECRET_KEY_TEST: Secret key used in the backend container during tests.
 
-DOCKERHUB_ACCESS_TOKEN – Docker Hub access token. Stored as a GitHub secret.  
+DOCKER_HUB_USERNAME & DOCKER_HUB_ACCESS_TOKEN: Docker Hub credentials for login and push.
+
+All secrets are stored in GitHub Actions secrets. 
 
 #### Best Practices #### 
 
@@ -55,15 +78,21 @@ Keep Python version consistent between local and CI (3.13).
 
 Pin dependency versions in requirements.txt for reproducibility.  
 
-Keep secrets (database URL, Docker Hub token) safe in GitHub Actions secrets.  
+Keep secrets (database credentials, Docker Hub token) safe in GitHub Actions secrets.  
 
 Use the health check endpoint to validate that the container runs before pushing.  
 
+Version handling is maintained manually via the VERSION file, remember to update that file before push to develop or main! 
+
 #### Notes #### 
 CI runs on ubuntu-latest; behavior may differ slightly from Windows or macOS.  
+
+Multi-arch image ensures compatibility for both AMD64 and ARM64 platforms.
 
 Health check uses the /health endpoint.  
 
 Docker images for develop and main are independent and pushed with different tags.  
 
-Versions numbers will be implemented later on, for now, *-latest tags are used.  
+Docker images for develop and main is pushed with different tags (1.1, 1.2, ... and 2.0, 3.0, ...)
+
+Version number in docker image is maintained MANUALLY in VERSIONFILE, and the next image number should be entered in the file before push to docker hub. Just replace the exisiting number with the new. The version number is used when the container is build and makes shore you know what version you are running by presenting it at container start. 
