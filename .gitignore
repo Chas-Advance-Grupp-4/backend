@@ -23,3 +23,6 @@ venv/
 pycache/
 *.pyc
 *.pyo
+
+# Doxygen generated documentation
+docs/html/

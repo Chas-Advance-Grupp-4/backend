@@ -18,18 +18,63 @@ from app.services.control_unit_service import (
     delete_control_unit_data,
 )
 
-router = APIRouter()
+router = APIRouter(tags=["Control Unit Data"])
 
 
-# For individual readings (for testing only)
-@router.post("/single-reading", response_model=ControlUnitDataRead, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/single-reading",
+    response_model=ControlUnitDataRead,
+    status_code=status.HTTP_201_CREATED,
+    summary="Create a single control unit reading (for testing only)",
+)
 def create(data: ControlUnitDataCreate, db: Session = Depends(get_db)):
+    """
+    Create a single control unit reading in the database.
+
+    Args:
+        data (ControlUnitDataCreate): Pydantic model representing the control unit reading.
+        db (Session): Database session dependency.
+
+    Returns:
+        ControlUnitDataRead: The created control unit data object.
+
+    Raises:
+        HTTPException 400: If validation fails.
+        HTTPException 500: On database errors.
+
+    Responses:
+        201 Created: Successfully created reading.
+        400 Bad Request: Invalid input.
+        500 Internal Server Error: Database failure.
+    """
     return create_control_unit_data(db, data)
 
 
-# Grouped readings used by Control Unit
-@router.post("/", status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/",
+    status_code=status.HTTP_201_CREATED,
+    summary="Receive grouped readings from a control unit",
+)
 def receive_device_data(data: DeviceData, db: Session = Depends(get_db)):
+    """
+    Save grouped sensor readings sent by a control unit.
+
+    Args:
+        data (DeviceData): Pydantic model with grouped readings.
+        db (Session): Database session dependency.
+
+    Returns:
+        dict: Status and number of saved readings.
+
+    Raises:
+        HTTPException 400: For unexpected errors.
+        HTTPException 500: For database errors.
+
+    Responses:
+        201 Created: Successfully saved readings.
+        400 Bad Request: Unexpected input error.
+        500 Internal Server Error: Database failure.
+    """
     try:
         save_device_data(data, db)
         total_readings = sum(len(group.sensor_units) for group in data.timestamp_groups)
@@ -41,29 +86,106 @@ def receive_device_data(data: DeviceData, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail=f"Unexpected error: {str(e)}")
 
 
-@router.get("/", response_model=list[ControlUnitDataRead])
+@router.get(
+    "/",
+    response_model=list[ControlUnitDataRead],
+    summary="Read all control unit data",
+)
 def read_all(db: Session = Depends(get_db)):
+    """
+    Retrieve all control unit readings from the database.
+
+    Args:
+        db (Session): Database session dependency.
+
+    Returns:
+        List[ControlUnitDataRead]: All control unit data objects.
+
+    Responses:
+        200 OK: Successfully retrieved data.
+    """
     return get_all_control_unit_data(db)
 
 
-@router.get("/{data_id}", response_model=ControlUnitDataRead)
+@router.get(
+    "/{data_id}",
+    response_model=ControlUnitDataRead,
+    summary="Read a single control unit reading by ID",
+)
 def read_single(data_id: UUID, db: Session = Depends(get_db)):
+    """
+    Retrieve a single control unit reading by its UUID.
+
+    Args:
+        data_id (UUID): Unique ID of the reading.
+        db (Session): Database session dependency.
+
+    Returns:
+        ControlUnitDataRead: The control unit data object.
+
+    Raises:
+        HTTPException 404: If the data object is not found.
+
+    Responses:
+        200 OK: Successfully retrieved data.
+        404 Not Found: Data not found.
+    """
     item = get_control_unit_data_by_id(db, str(data_id))
     if not item:
         raise HTTPException(status_code=404, detail="ControlUnitData not found")
     return item
 
 
-@router.put("/{data_id}", response_model=ControlUnitDataRead)
+@router.put(
+    "/{data_id}",
+    response_model=ControlUnitDataRead,
+    summary="Update a control unit reading",
+)
 def update(data_id: UUID, update: ControlUnitDataUpdate, db: Session = Depends(get_db)):
+    """
+    Update a control unit reading by its UUID.
+
+    Args:
+        data_id (UUID): Unique ID of the reading to update.
+        update (ControlUnitDataUpdate): Fields to update.
+        db (Session): Database session dependency.
+
+    Returns:
+        ControlUnitDataRead: The updated control unit data object.
+
+    Raises:
+        HTTPException 404: If the data object is not found.
+
+    Responses:
+        200 OK: Successfully updated.
+        404 Not Found: Data not found.
+    """
     item = update_control_unit_data(db, str(data_id), update.model_dump(exclude_unset=True))
     if not item:
         raise HTTPException(status_code=404, detail="ControlUnitData not found")
     return item
 
 
-@router.delete("/{data_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+    "/{data_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Delete a control unit reading",
+)
 def delete(data_id: UUID, db: Session = Depends(get_db)):
+    """
+    Delete a control unit reading by its UUID.
+
+    Args:
+        data_id (UUID): Unique ID of the reading to delete.
+        db (Session): Database session dependency.
+
+    Raises:
+        HTTPException 404: If the data object is not found.
+
+    Responses:
+        204 No Content: Successfully deleted.
+        404 Not Found: Data not found.
+    """
     item = delete_control_unit_data(db, str(data_id))
     if not item:
         raise HTTPException(status_code=404, detail="ControlUnitData not found")
