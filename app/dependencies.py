@@ -8,6 +8,13 @@ from app.models.user_model import User
 from app.api.v1.schemas.auth_schema import TokenData
 from app.services.user_service import get_user_by_id
 
+"""
+Module: auth_dependencies.py
+Description: Provides authentication and authorization dependencies for FastAPI routes,
+including JWT validation, current user retrieval, and role-based access control.
+"""
+
+# Bearer scheme for JWT authentication
 bearer_scheme = HTTPBearer(
     bearerFormat="JWT",
     description="Login to create your JWT. Paste the access token from POST /api/v1/login to authorize.",
@@ -17,7 +24,10 @@ bearer_scheme = HTTPBearer(
 def get_db():
     """
     Dependency that provides a database session to a route function
-    and ensures it's closed afterward.
+    and ensures it is closed after use.
+
+    Yields:
+        Session: SQLAlchemy database session.
     """
     db = SessionLocal()
     try:
@@ -26,6 +36,7 @@ def get_db():
         db.close()
 
 
+# Annotated type for dependency injection
 DbSession = Annotated[Session, Depends(get_db)]
 
 
@@ -34,7 +45,17 @@ async def get_current_user(
     db: DbSession,
 ) -> User:
     """
-    Validates the Bearer JWT, decodes it, and fetches the corresponding User.
+    Validates a Bearer JWT token, decodes it, and fetches the corresponding User object.
+
+    Args:
+        token (HTTPAuthorizationCredentials): The JWT provided in the Authorization header.
+        db (Session): SQLAlchemy database session.
+
+    Returns:
+        User: Authenticated User object.
+
+    Raises:
+        HTTPException: Raises 401 Unauthorized if the token is invalid, expired, or the user does not exist.
     """
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -62,6 +83,19 @@ async def get_current_user(
 
 
 def require_roles(roles: list[str]):
+    """
+    Creates a dependency function to enforce role-based access control on routes.
+
+    Args:
+        roles (list[str]): List of roles allowed to access the route.
+
+    Returns:
+        Callable: A dependency function to use with FastAPI routes that validates the current user's role.
+
+    Raises:
+        HTTPException: Raises 403 Forbidden if the current user's role is not in the allowed roles.
+    """
+
     def role_checker(current_user: Annotated[User, Depends(get_current_user)]):
         if current_user.role not in roles:
             raise HTTPException(

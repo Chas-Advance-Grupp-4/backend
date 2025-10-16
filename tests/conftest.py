@@ -16,22 +16,44 @@ from app.dependencies import get_db
 from app.main import app
 from app.models.user_model import User
 
-
 # --- Engine for tests ---
-engine = create_engine(os.environ["DATABASE_URL"], connect_args={"check_same_thread": False})  # Important for FastAPI/TestClient
+engine = create_engine(os.environ["DATABASE_URL"], connect_args={"check_same_thread": False})
+"""
+SQLAlchemy engine for test database.
+Using SQLite in-memory/file DB for isolated testing.
+"""
 
 # --- Create all tables before tests ---
 Base.metadata.create_all(bind=engine)
+"""
+Creates all tables from Base metadata.
+Ensures schema exists for all tests before any fixture is invoked.
+"""
 
 # --- SessionLocal for tests ---
 TestingSessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
-
+"""
+Factory for SQLAlchemy sessions for test database.
+Each test can get a fresh session using this.
+"""
 
 # --- Fixture for test database session per test ---
 @pytest.fixture(scope="function")
 def db_session():
     """
-    Creates a new database session per test.
+    Provides a fresh SQLAlchemy database session for each test function.
+
+    Purpose:
+    - Isolate database operations per test.
+    - Rollback after test to maintain clean state.
+
+    Scenario:
+    - Test function requests db_session fixture.
+    - SQLAlchemy session is yielded.
+    - After test, changes are rolled back and session is closed.
+
+    Expected behavior:
+    - Each test sees an empty, isolated database environment.
     """
     session = TestingSessionLocal()
     try:
@@ -40,14 +62,23 @@ def db_session():
         session.rollback()
         session.close()
 
-
 # --- Fixture for FastAPI TestClient ---
 @pytest.fixture(scope="function")
 def client(db_session):
     """
-    Creates TestClient that uses the test database.
-    """
+    Provides FastAPI TestClient using the test database.
 
+    Purpose:
+    - Allow endpoint tests to run against an isolated database.
+    
+    Scenario:
+    - Dependency get_db is overridden to use db_session fixture.
+    - TestClient instance is yielded to the test.
+    - After test, dependency overrides are cleared.
+
+    Expected behavior:
+    - Requests made with client use the test database session.
+    """
     def override_get_db():
         yield db_session
 
@@ -58,19 +89,29 @@ def client(db_session):
 
     app.dependency_overrides.clear()
 
-
 # --- Teardown after all tests ---
 @pytest.fixture(scope="session", autouse=True)
 def teardown():
+    """
+    Global teardown fixture executed after all tests.
+
+    Purpose:
+    - Clean up test database and resources after test session.
+    
+    Scenario:
+    - Drops all tables from test database.
+    - Disposes SQLAlchemy engine.
+    - Runs garbage collection to release references.
+    - Removes test SQLite database file with retries (for Windows file locks).
+
+    Expected behavior:
+    - No leftover files or database locks after test suite finishes.
+    """
     yield
-    # Drop all tables using an explicit connection context
     with engine.begin() as conn:
         Base.metadata.drop_all(bind=conn)
-    # Dispose engine to release SQLite file handle on Windows
     engine.dispose()
-    # Encourage release of any lingering references
     gc.collect()
-    # Remove test database file with a short retry loop for Windows file locks
     if os.path.exists("./test.db"):
         for _ in range(10):
             try:
@@ -79,9 +120,21 @@ def teardown():
             except PermissionError:
                 time.sleep(0.1)
 
-
 # --- Fixture to clean users table before each test ---
 @pytest.fixture(autouse=True)
 def clean_users_table(db_session):
+    """
+    Automatically clears the users table before each test.
+
+    Purpose:
+    - Ensure tests have a consistent starting state.
+
+    Scenario:
+    - Runs before each test function.
+    - Deletes all rows in users table and commits.
+
+    Expected behavior:
+    - No leftover users from previous tests affect current test.
+    """
     db_session.query(User).delete()
     db_session.commit()
