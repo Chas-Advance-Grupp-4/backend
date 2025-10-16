@@ -19,8 +19,8 @@ fi
 BASE_VERSION=$(git show HEAD~1:VERSION 2>/dev/null || echo "none")
 
 echo "Branch: $BRANCH"
-echo "Base VERSION: $BASE_VERSION"
-echo "New VERSION:  $VERSION"
+echo "Previous VERSION: $BASE_VERSION"
+echo "Current VERSION:  $VERSION"
 
 # If no previous version found, allow initial version
 if [ "$BASE_VERSION" = "none" ]; then
@@ -40,16 +40,3 @@ else
 fi
 
 echo "VERSION is valid and newer than previous!"
-
-if [ "$BRANCH" == "main" ]; then
-    
-    IMAGE_TAG="${HEAD_MAJOR}.0"
-elif [ "$BRANCH" == "develop" ]; then
-    IMAGE_TAG="${HEAD_MAJOR}.${HEAD_MINOR}"
-else
-    IMAGE_TAG="latest"
-fi
-
-echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
-echo "Next Docker tag: $IMAGE_TAG"
-
