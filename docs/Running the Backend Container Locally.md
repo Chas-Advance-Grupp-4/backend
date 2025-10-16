@@ -30,29 +30,29 @@ docker run -d \
   --name backend_local \
   -p 8000:8000 \
   --env-file .env \
-  annaschwartzchas/chas_advance_backend:< your-develop-version >
+  chasadvancegroup4/chas_advance_backend:< your-develop-version >
 
 
 Example:
 
-docker run -d --name backend_local -p 8000:8000 --env-file .env annaschwartzchas/chas_advance_backend:1.1
+docker run -d --name backend_local -p 8000:8000 --env-file .env chasadvancegroup4/chas_advance_backend:1.1
 
 For the latest main build:
 docker run -d \
   --name backend_local \
   -p 8000:8000 \
   --env-file .env \
-  annaschwartzchas/chas_advance_backend:< your-main-version >
+  chasadvancegroup4/chas_advance_backend:< your-main-version >
 
 
 Example:
 
-docker run -d --name backend_local -p 8000:8000 --env-file .env annaschwartzchas/chas_advance_backend:2.0
+docker run -d --name backend_local -p 8000:8000 --env-file .env chasadvancegroup4/chas_advance_backend:2.0
 
 Tip: You can also use the latest tag for testing the most recent develop image.  
 
 Example:  
-docker run -d --name backend_local -p 8000:8000 --env-file .env annaschwartzchas/chas_advance_backend:latest  
+docker run -d --name backend_local -p 8000:8000 --env-file .env chasadvancegroup4/chas_advance_backend:latest  
 
 -d runs the container in detached mode.
 
@@ -62,6 +62,14 @@ docker run -d --name backend_local -p 8000:8000 --env-file .env annaschwartzchas
 
 --env-file .env passes environment variables from your local .env file.
 
+You can run the command docker run --rm --env-file .env chasadvancegroup4/chas_advance_backend:latest --version
+
+to check which version latest is, it starts up the container, prints out versionnumber and then stops the container and removes it. 
+
+You can also check versionnumber in a detached running container. You use docker logs backend_local to see it in the logs for that container. 
+
+If you don't start the container in detach mode you will see versionnumber printed out first in the terminalwindow where the container is running and printing its logs. 
+ 
 ### Accessing the API### 
 
 Open your browser or use a tool like curl or Postman to access the API:

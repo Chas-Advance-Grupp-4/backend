@@ -110,13 +110,13 @@ jobs:
         run: |
           if [ "${GITHUB_REF##*/}" == "develop" ]; then
             docker buildx build --platform linux/amd64,linux/arm64 \
-              -t annaschwartzchas/chas_advance_backend:${{ env.IMAGE_TAG }} \
-              -t annaschwartzchas/chas_advance_backend:latest \
+              -t chasadvancegroup4/chas_advance_backend:${{ env.IMAGE_TAG }} \
+              -t chasadvancegroup4/chas_advance_backend:latest \
               --build-arg VERSION=${{ env.IMAGE_TAG }} \
               --push .
           elif [ "${GITHUB_REF##*/}" == "main" ]; then
             docker buildx build --platform linux/amd64,linux/arm64 \
-              -t annaschwartzchas/chas_advance_backend:${{ env.IMAGE_TAG }} \
+              -t chasadvancegroup4/chas_advance_backend:${{ env.IMAGE_TAG }} \
               --build-arg VERSION=${{ env.IMAGE_TAG }} \
               --push .
           else
