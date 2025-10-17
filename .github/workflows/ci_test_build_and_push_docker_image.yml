@@ -15,7 +15,7 @@ jobs:
     #Only run on main repo, not forks
     if: ${{ github.event.repository.fork == false }}
     outputs:
-      version_changed: ${{ steps.check.outputs.version_changed }}
+      version_changed: ${{ steps.check.outputs.version_changed || 'false' }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
@@ -25,23 +25,23 @@ jobs:
       - name: Check if VERSION file changed
         id: check
         run: |
-          if git diff HEAD~1 --name-only | grep -q "^VERSION$"; then
-            echo "VERSION file has changed."
-            echo "version_changed=true" >> $GITHUB_OUTPUT
+          echo "version_changed=false" >> $GITHUB_OUTPUT
+          if git rev-parse HEAD~1 >/dev/null 2>&1; then
+            if git diff HEAD~1 --name-only | grep -q "^VERSION$"; then
+              echo "VERSION file has changed."
+              echo "version_changed=true" >> $GITHUB_OUTPUT
+            else
+              echo "VERSION file NOT changed."
+            fi
           else
-            echo "VERSION file NOT changed."
-            echo "version_changed=false" >> $GITHUB_OUTPUT
+            echo "No previous commit to compare."
           fi
-
-      - name: Exit if VERSION file not changed
-        if: ${{ steps.check.outputs.version_changed == 'false' }}
-        run: |
-          echo "VERSION file not changed. Exiting workflow."
-          exit 0
 
       - name: Debug version_changed in Check_if_job_should_run
         run: echo "version_changed=${{ steps.check.outputs.version_changed }}"
 
+      - name: Debug GITHUB_OUTPUT
+        run: cat $GITHUB_OUTPUT
   Tests:
     name: Run Tests
     runs-on: ubuntu-latest
@@ -50,7 +50,7 @@ jobs:
 
     steps:
       - name: Debug version_changed in Check_if_job_should_run
-        run: echo "version_changed=${{ steps.check.outputs.version_changed }}"
+        run: echo "version_changed=${{ needs.Check_if_job_should_run.outputs.version_changed }}"
 
       - name: Checkout repository
         uses: actions/checkout@v5
