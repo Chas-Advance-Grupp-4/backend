@@ -15,7 +15,7 @@ jobs:
     #Only run on main repo, not forks
     if: ${{ github.event.repository.fork == false }}
     outputs:
-      version_changed: ${{ steps.check.outputs.version_changed || 'false' }}
+      version_changed: ${{ steps.check.outputs.version_changed }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
@@ -25,33 +25,22 @@ jobs:
       - name: Check if VERSION file changed
         id: check
         run: |
-          echo "version_changed=false" >> $GITHUB_OUTPUT
-          if git rev-parse HEAD~1 >/dev/null 2>&1; then
-            if git diff HEAD~1 --name-only | grep -q "^VERSION$"; then
-              echo "VERSION file has changed."
-              echo "version_changed=true" >> $GITHUB_OUTPUT
-            else
-              echo "VERSION file NOT changed."
-            fi
+          version_changed=false
+          if git diff HEAD~1 --name-only | grep -q "^VERSION$"; then
+            echo "VERSION file has changed."
+            version_changed=true
           else
-            echo "No previous commit to compare."
+            echo "VERSION file NOT changed."
           fi
+          echo "version_changed=$version_changed" >> $GITHUB_OUTPUT
 
-      - name: Debug version_changed in Check_if_job_should_run
-        run: echo "version_changed=${{ steps.check.outputs.version_changed }}"
-
-      - name: Debug GITHUB_OUTPUT
-        run: cat $GITHUB_OUTPUT
   Tests:
     name: Run Tests
     runs-on: ubuntu-latest
     needs: Check_if_job_should_run
-    if: ${{ github.event.repository.fork == false }} && needs.Check_if_job_should_run.outputs.version_changed == 'true'
+    if: ${{ github.event.repository.fork == false && needs.Check_if_job_should_run.outputs.version_changed == 'true' }}
 
     steps:
-      - name: Debug version_changed in Check_if_job_should_run
-        run: echo "version_changed=${{ needs.Check_if_job_should_run.outputs.version_changed }}"
-
       - name: Checkout repository
         uses: actions/checkout@v5
 
@@ -76,12 +65,9 @@ jobs:
     name: Builds and Tests AMD64 Docker Image
     runs-on: ubuntu-latest
     needs: Tests
-    if: ${{ github.event.repository.fork == false }} && needs.Check_if_job_should_run.outputs.version_changed == 'true'
+    if: ${{ github.event.repository.fork == false && needs.Check_if_job_should_run.outputs.version_changed == 'true' }}
 
     steps:
-      - name: Debug version_changed in Check_if_job_should_run
-        run: echo "version_changed=${{ steps.check.outputs.version_changed }}"
-
       - name: Checkout repository
         uses: actions/checkout@v5
 
@@ -104,12 +90,9 @@ jobs:
     name: Builds and Tests ARM64 Docker Image
     runs-on: ubuntu-24.04-arm
     needs: Tests
-    if: ${{ github.event.repository.fork == false }} && needs.Check_if_job_should_run.outputs.version_changed == 'true'
+    if: ${{ github.event.repository.fork == false && needs.Check_if_job_should_run.outputs.version_changed == 'true' }}
 
     steps:
-      - name: Debug version_changed in Check_if_job_should_run
-        run: echo "version_changed=${{ steps.check.outputs.version_changed }}"
-
       - name: Checkout repository
         uses: actions/checkout@v5
 
@@ -134,11 +117,8 @@ jobs:
     needs:
       - Docker_Build_and_Test_AMD64_Image
       - Docker_Build_and_Test_ARM64_Image
-    if: ${{ github.event.repository.fork == false }} && needs.Check_if_job_should_run.outputs.version_changed == 'true'
+    if: ${{ github.event.repository.fork == false && needs.Check_if_job_should_run.outputs.version_changed == 'true' }}
     steps:
-      - name: Debug version_changed in Check_if_job_should_run
-        run: echo "version_changed=${{ steps.check.outputs.version_changed }}"
-
       - name: Checkout repository
         uses: actions/checkout@v5
         with:

@@ -15,13 +15,13 @@ permissions:
 jobs:
     bump-version:
         runs-on: ubuntu-latest
-        #Only run on main repo, not forks
+        # Workflow does not run on forks (Security measure)
         if: ${{ github.event.repository.fork == false }}
         steps:
             - name: Checkout repository
               uses: actions/checkout@v5.0.0
               with:
-                  fetch-depth: 0 # Fetch last two commits to check if VERSION was changed in the last commit
+                  fetch-depth: 0 #Fetch all history to be able to compare version.
 
             - name: Check if VERSION was updated recently
               id: check
