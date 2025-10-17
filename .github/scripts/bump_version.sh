@@ -14,7 +14,7 @@ HEAD_MINOR=${VERSION##*.}
 
 if [ "$BRANCH" = "main" ]; then 
     NEW_VERSION="$((HEAD_MAJOR+1)).0"
-elif [ "$BRANCH" = "develop" ]; then
+elif [ "$BRANCH" = "develop" ] || [ "$BRANCH" = "test-workflow" ]; then
     NEW_VERSION="$HEAD_MAJOR.$((HEAD_MINOR+1))"
 else
     echo "No version bump on branch $BRANCH"
