@@ -75,5 +75,5 @@ jobs:
                   gh pr create \
                     --title "Bump version to ${{ env.VERSION }}" \
                     --body "Automatic version bump to ${{ env.VERSION }} from ${{ github.ref_name}}" \
-                    --base ${{ github.ref_name }}
+                    --base ${{ github.ref_name }} \
                     --head "$BRANCH_NAME"
