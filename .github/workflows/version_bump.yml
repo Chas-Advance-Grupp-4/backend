@@ -3,9 +3,8 @@ name: Version Bump
 on:
     push:
         branches:
-            #    - develop
-            #    - main
-            - test-workflow
+            - develop
+            - main
     workflow_dispatch:
 
 permissions:
@@ -27,10 +26,10 @@ jobs:
               id: check
               run: |
                   if git diff HEAD~1 --name-only | grep -q "^VERSION$"; then
-                      echo "Version already bumped in the last commit. Skipping version bump."
-                      echo "bump_needed=false" >> $GITHUB_ENV
+                    echo "Version already bumped in the last commit. Skipping version bump."
+                    echo "bump_needed=false" >> $GITHUB_ENV
                   else
-                      echo "bump_needed=true" >> $GITHUB_ENV
+                    echo "bump_needed=true" >> $GITHUB_ENV
                   fi
 
             - name: Exit if no bump needed
@@ -73,7 +72,7 @@ jobs:
                   git push origin "$BRANCH_NAME"
 
                   gh pr create \
-                    --title "Bump version to ${{ env.VERSION }}" \
-                    --body "Automatic version bump to ${{ env.VERSION }} from ${{ github.ref_name}}" \
-                    --base ${{ github.ref_name }} \
-                    --head "$BRANCH_NAME"
+                  --title "Bump version to ${{ env.VERSION }}" \
+                  --body "Automatic version bump to ${{ env.VERSION }} from ${{ github.ref_name}}" \
+                  --base ${{ github.ref_name }} \
+                  --head "$BRANCH_NAME"

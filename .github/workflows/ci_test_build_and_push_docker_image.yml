@@ -3,9 +3,8 @@ name: CI v3 Tests, Build docker image and Push to Docker Hub.
 on:
   push:
     branches:
-      #  - main
-      #  - develop
-      - test-workflow
+      - main
+      - develop
   workflow_dispatch:
 
 jobs:

@@ -1,76 +1,103 @@
-## CI v1 Tests, build, runs and pushes docker image to Dockerhub – Backend ##  
-This document describes the GitHub Actions workflow for the backend, which automates tests, builds Docker images, runs a health check, and pushes the image to Docker Hub.
+## CI v3 Tests, build, runs and pushes docker image to Dockerhub – Backend ##  
+This document describes the GitHub Actions workflow for the backend. It automates tests, builds Docker images, runs a health check, and pushes the image to Docker Hub.
 
 ### Purpose ### 
-Runs backend tests automatically on pushes to develop or main.  
+- Automatically run backend tests on pushes to **develop** or **main**.
 
-Build Docker images for both AMD64 and ARM64 for health testing.  
+- Build Docker images for both **AMD64** and **ARM64** architectures.
 
-Test the Docker images with a health check before pushing.  
+- Test the Docker images using a health check before pushing.
 
-Push  multi-architecture Docker images to Docker Hub if tests and health checks passes.  
+- Push multi-architecture Docker images to Docker Hub if tests pass.
 
-Ensure consistent and reproducible environments across local development and CI.  
+- Ensure consistent and reproducible environments between local development and CI. 
 
-#### Workflow Triggers #### 
-Automatic: On push to develop or main.  
+### Workflow Triggers ### 
+- Automatic: On push to **develop** or **main**.  
 
-Manual: Trigger via workflow_dispatch in GitHub Actions.  
+- Manual: Trigger via **workflow_dispatch** in GitHub Actions.  
 
-#### Steps ####  
-1. Tests
-Checkout repository – Fetches code from the current branch.  
+### Steps ###  
+**1. Check if VERSION file changed**
 
-Set up Python environment – Installs Python 3.13 using setup-python@v6.  
+- **Checkout repository** - Fetch all code with fetch-depth: 0 to allow comparing with previous commit.
 
-Install dependencies – Upgrades pip and installs all packages from requirements.txt.  
+- **Check VERSION file**
 
-Run tests – Executes pytest -v to run all backend tests; full output is printed for debugging.  
+    - Uses git diff HEAD~1 --name-only to see if the VERSION file was modified in the last commit.
 
-All tests passed – Prints "All tests passed!" if tests succeed.  
+    - Sets version_changed output variable to true or false.
 
-2. Docker - builds and Tests docker images
-Checkout repository
+    - If version_changed is false, all downstream jobs (tests, Docker builds) are skipped.
 
-Build AMD64 Docker image for testing
-Builds an AMD64 image tagged as backend_test_amd64 using docker buildx --platform linux/amd64.
+**2. Tests**
+- **Checkout repository** – Fetches code from the current branch.  
 
-Test Docker image
-Runs a health check test using .github/scripts/tests.sh with the AMD64 image. Checks /health endpoint.
+- **Set up Python environment** – Installs Python 3.13 using setup-python@v6.  
 
-Build ARM64 Docker image for testing:
-Builds an ARM64 image tagged as backend_test_arm64 using docker buildx --platform linux/arm64.
+- **Install dependencies** – Upgrades pip and installs all packages from requirements.txt.  
 
-Test Docker image
-Runs .github/scripts/tests.sh with the ARM64 image to ensure it starts and /health endpoint responds.
+- **Run tests** – Executes pytest -v to run all backend tests; full output is printed for debugging.  
 
-3. Docker Push - Build & Push Multi-arch Docker image 
+- **All tests passed** – Prints "All tests passed!" if tests succeed.  
+
+    Only runs if version_changed == true.
+
+**3. Docker - builds and Tests docker images**  
+**AMD64**
+
+- **Checkout repository**
+
+- **Build AMD64 Docker image** - Tagged as backend_test_amd64 using docker buildx --platform linux/amd64.
+
+- **Test Docker image** - Runs .github/scripts/tests.sh to check /health endpoint.
+
+**ARM64**
+
+- **Checkout repository**
+
+- **Build ARM64 Docker image** - Tagged as backend_test_arm64 using docker buildx --platform linux/arm64.
+
+- **Test Docker image** - Runs .github/scripts/tests.sh to check /health endpoint.
+
+Only runs if version_changed == true and tests passed.
+
+**4. Docker Push - Build & Push Multi-arch Docker image** 
    
-Checkout Repository
+- **Checkout Repository**
 
-Runs version validation
+- **Runs version validation**
 
-Validates so the VERSIONS document is updated with next version so there won't be duplicates of image versions with the same number.  
-Validates so the number is in correct format, 1.1 1.2 1.0 2.0 ...  
+    - Ensures the VERSION file has the correct next version.
 
-Log in to Docker Hub 
-Uses GitHub secrets for username and access token.  
+    - Prevents duplicate Docker image tags.
 
-Build and Push multi-architecture Docker image to Docker Hub  
-Uses docker buildx build --platform linux/amd64,linux/arm64 --push to push a single multi-arch image to Docker Hub.
-develop gets taged with accurate VERSION number and a latest tag
-main gets tagged with accurate VERSION number. Uses --build arg VERSION=${IMAGE_TAG} to set correct version in docker-image and present it when container starts.
+- **Set IMAGE_TAG from VERSION** - Used for tagging Docker image
 
-#### Environment Variables & Secrets ####  
-TEST_DB_USER, TEST_DB_PASSWORD, TEST_DB_NAME, TEST_DB_PORT: Used by the test script to configure the temporary Postgres database.
+- **Log in to Docker Hub** - Uses GitHub secrets for username and access token.  
 
-SECRET_KEY_TEST: Secret key used in the backend container during tests.
+- **Build and Push multi-architecture Docker image to Docker Hub**    
+- Uses docker buildx build --platform linux/amd64,linux/arm64 --push to push a single multi-arch image to Docker Hub.
 
-DOCKER_HUB_USERNAME & DOCKER_HUB_ACCESS_TOKEN: Docker Hub credentials for login and push.
+- develop gets taged with accurate VERSION number and a latest tag
+
+- main gets tagged with accurate VERSION number. 
+  
+- Uses --build arg VERSION=${IMAGE_TAG} to set correct version in docker-image and present it when container starts.
+
+Only runs if version_changed == true, tests passed, and health check is ok. 
+
+### Environment Variables & Secrets ###  
+**TEST_DB_USER**, **TEST_DB_PASSWORD**, **TEST_DB_NAME**, **TEST_DB_PORT**: Used by the test script to configure the temporary Postgres database.
+
+**SECRET_KEY_TEST**: Secret key used in the backend container during tests.
+
+**DOCKER_HUB_USERNAME** & **DOCKER_HUB_ACCESS_TOKEN**: Docker Hub credentials for login and push.
+
 
 All secrets are stored in GitHub Actions secrets. 
 
-#### Best Practices #### 
+### Best Practices ###  
 
 Test locally first in a virtual environment before pushing.  
 
@@ -82,9 +109,9 @@ Keep secrets (database credentials, Docker Hub token) safe in GitHub Actions sec
 
 Use the health check endpoint to validate that the container runs before pushing.  
 
-Version handling is maintained manually via the VERSION file, remember to update that file before push to develop or main! 
+Remember to Merge PR from BOT that automaticly updates VERSION file to be able to build with correct tags! 
 
-#### Notes #### 
+### Notes ###  
 CI runs on ubuntu-latest; behavior may differ slightly from Windows or macOS.  
 
 Multi-arch image ensures compatibility for both AMD64 and ARM64 platforms.
@@ -95,4 +122,4 @@ Docker images for develop and main are independent and pushed with different tag
 
 Docker images for develop and main is pushed with different tags (1.1, 1.2, ... and 2.0, 3.0, ...)
 
-Version number in docker image is maintained MANUALLY in VERSIONFILE, and the next image number should be entered in the file before push to docker hub. Just replace the exisiting number with the new. The version number is used when the container is build and makes shore you know what version you are running by presenting it at container start. 
+Version number in docker image is maintained automaticly via another Workflow that bumps version and creates a PR. Merge this PR with update to VERSION file to be able to build the image. The version number is used when the container is build and makes shore you know what version you are running by presenting it at container start. 
