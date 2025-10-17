@@ -20,7 +20,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5
         with:
-          fetch-depth: 0 
+          fetch-depth: 0
       - name: Check if VERSION file changed
         id: check
         run: |
@@ -31,6 +31,12 @@ jobs:
             echo "VERSION file NOT changed."
             echo "version_changed=false" >> $GITHUB_OUTPUT
           fi
+
+      - name: Exit if VERSION file not changed
+        if: ${{ steps.check.outputs.version_changed == 'false' }}
+        run: |
+          echo "VERSION file not changed. Exiting workflow."
+          exit 0
 
   Tests:
     name: Run Tests
@@ -120,7 +126,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5
         with:
-          fetch-depth: 0 
+          fetch-depth: 0
 
       - name: Run version validation
         run: |
