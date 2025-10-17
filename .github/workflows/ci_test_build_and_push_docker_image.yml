@@ -1,16 +1,43 @@
-name: CI v2 Tests, Build docker image and Push to Docker Hub.
+name: CI v3 Tests, Build docker image and Push to Docker Hub.
 
 on:
   push:
     branches:
-      - main
-      - develop
+      #  - main
+      #  - develop
+      - test-workflow
   workflow_dispatch:
 
 jobs:
+  Check_if_job_should_run:
+    name: Check if version is changed
+    runs-on: ubuntu-latest
+    #Only run on main repo, not forks
+    if: ${{ github.event.repository.fork == false }}
+    outputs:
+      version_changed: ${{ steps.check.outputs.version_changed }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 2 # Fetch at least two commits to compare VERSION file
+
+      - name: Check if VERSION file changed
+        id: check
+        run: |
+          if git diff HEAD~1 --name-only | grep -q "^VERSION$"; then
+            echo "VERSION file has changed."
+            echo "version_changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "VERSION file NOT changed."
+            echo "version_changed=false" >> $GITHUB_OUTPUT
+          fi
+
   Tests:
     name: Run Tests
     runs-on: ubuntu-latest
+    needs: Check_if_job_should_run
+    if: ${{ github.event.repository.fork == false }} && needs.Check_if_job_should_run.outputs.version_changed == 'true'
 
     steps:
       - name: Checkout repository
@@ -37,6 +64,7 @@ jobs:
     name: Builds and Tests AMD64 Docker Image
     runs-on: ubuntu-latest
     needs: Tests
+    if: ${{ github.event.repository.fork == false }} && needs.Check_if_job_should_run.outputs.version_changed == 'true'
 
     steps:
       - name: Checkout repository
@@ -61,6 +89,7 @@ jobs:
     name: Builds and Tests ARM64 Docker Image
     runs-on: ubuntu-24.04-arm
     needs: Tests
+    if: ${{ github.event.repository.fork == false }} && needs.Check_if_job_should_run.outputs.version_changed == 'true'
 
     steps:
       - name: Checkout repository
@@ -85,7 +114,9 @@ jobs:
     name: Build and Push Docker Image
     runs-on: ubuntu-latest
     needs:
-      [Docker_Build_and_Test_AMD64_Image, Docker_Build_and_Test_ARM64_Image]
+      - Docker_Build_and_Test_AMD64_Image
+      - Docker_Build_and_Test_ARM64_Image
+    if: ${{ github.event.repository.fork == false }} && needs.Check_if_job_should_run.outputs.version_changed == 'true'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
@@ -96,6 +127,12 @@ jobs:
         run: |
           chmod +x .github/scripts/version.sh
           .github/scripts/version.sh
+
+      - name: Set IMAGE_TAG from VERSION
+        run: |
+          IMAGE_TAG=$(cat VERSION)
+          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
+          echo "Image tag set to $IMAGE_TAG"
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
@@ -108,7 +145,7 @@ jobs:
 
       - name: Build & Push Multi-Arch Docker Image
         run: |
-          if [ "${GITHUB_REF##*/}" == "develop" ]; then
+          if [ "${GITHUB_REF##*/}" == "develop" || "${GITHUB_REF##*/}" == "test-workflow" ]; then
             docker buildx build --platform linux/amd64,linux/arm64 \
               -t chasadvancegroup4/chas_advance_backend:${{ env.IMAGE_TAG }} \
               -t chasadvancegroup4/chas_advance_backend:latest \

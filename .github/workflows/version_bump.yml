@@ -1,0 +1,71 @@
+name: Version Bump
+
+on:
+    push:
+        branches:
+            #    - develop
+            #    - main
+            - test-workflow
+    workflow_dispatch:
+
+permissions:
+    contents: write
+    pull-requests: write
+
+jobs:
+    bump-version:
+        runs-on: ubuntu-latest
+        #Only run on main repo, not forks
+        if: ${{ github.event.repository.fork == false }}
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v5.0.0
+              with:
+                  fetch-depth: 2 # Fetch last two commits to check if VERSION was changed in the last commit
+
+            - name: Check if VERSION was updated recently
+              id: check
+              run: |
+                  if git diff HEAD~1 --name-only | grep -q "^VERSION$"; then
+                      echo "Version already bumped in the last commit. Skipping version bump."
+                      echo "bump_needed=false" >> $GITHUB_ENV
+                  else
+                      echo "bump_needed=true" >> $GITHUB_ENV
+                  fi
+
+            - name: Exit if no bump needed
+              if: env.bump_needed == 'false'
+              run: |
+                  echo "No version bump needed. Exiting workflow."
+                  exit 0
+
+            - name: Make script executable
+              if: env.bump_needed == 'true'
+              run: chmod +x .github/scripts/bump_version.sh
+
+            - name: Bump version
+              if: env.bump_needed == 'true'
+              run: .github/scripts/bump_version.sh
+
+            - name: Log version
+              if: env.bump_needed == 'true'
+              run: echo "New version is ${{ env.VERSION }}"
+
+            - name: Commit and create PR
+              if: env.bump_needed == 'true'
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  git config --global user.name 'github-actions[bot]'
+                  git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+                  BRANCH_NAME="version-bump-${{ github.ref_name }}-${{ github.run_number }}"
+                  git checkout -b $BRANCH_NAME
+                  git add VERSION
+                  git commit -m "Bump version to ${{ env.VERSION }}"
+                  git push origin "$BRANCH_NAME"
+
+                  gh pr create \
+                    --title "Bump version to ${{ env.VERSION }}" \
+                    --body "Automatic version bump to ${{ env.VERSION }} from ${{ github.ref_name}}" \
+                    --base ${{ github.ref_name }}
+                    --head "$BRANCH_NAME" \
