@@ -21,7 +21,7 @@ jobs:
             - name: Checkout repository
               uses: actions/checkout@v5.0.0
               with:
-                  fetch-depth: 2 # Fetch last two commits to check if VERSION was changed in the last commit
+                  fetch-depth: 0 # Fetch last two commits to check if VERSION was changed in the last commit
 
             - name: Check if VERSION was updated recently
               id: check
@@ -39,6 +39,14 @@ jobs:
                   echo "No version bump needed. Exiting workflow."
                   exit 0
 
+            - name: Generate GitHub App token
+              if: env.bump_needed == 'true'
+              id: generate_token
+              uses: actions/create-github-app-token@v1.1.0
+              with:
+                  app_id: ${{ secrets.APP_ID }}
+                  private_key: ${{ secrets.PRIVATE_KEY }}
+
             - name: Make script executable
               if: env.bump_needed == 'true'
               run: chmod +x .github/scripts/bump_version.sh
@@ -54,7 +62,7 @@ jobs:
             - name: Commit and create PR
               if: env.bump_needed == 'true'
               env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
               run: |
                   git config --global user.name 'github-actions[bot]'
                   git config --global user.email 'github-actions[bot]@users.noreply.github.com'
