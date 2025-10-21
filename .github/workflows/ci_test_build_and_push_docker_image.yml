@@ -25,11 +25,22 @@ jobs:
         id: check
         run: |
           version_changed=false
-          if git diff HEAD~1 --name-only | grep -q "^VERSION$"; then
-            echo "VERSION file has changed."
-            version_changed=true
+          BRANCH=${GITHUB_REF##*/}
+          if [ "$BRANCH" == "main" ]; then
+            LAST_COMMIT_MSG=$(git log -1 --pretty=%B)
+            if echo "$LAST_COMMIT_MSG" | grep -q "Bump version to"; then
+              echo "VERSION file has changed."
+              version_changed=true
+            else
+              echo "VERSION file NOT changed."
+            fi
           else
-            echo "VERSION file NOT changed."
+            if git diff HEAD~1 --name-only | grep -q "^VERSION$"; then
+              echo "VERSION file has changed."
+              version_changed=true
+            else
+              echo "VERSION file NOT changed."
+            fi
           fi
           echo "version_changed=$version_changed" >> $GITHUB_OUTPUT
 
