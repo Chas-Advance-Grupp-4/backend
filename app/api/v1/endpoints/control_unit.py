@@ -18,7 +18,7 @@ from app.services.control_unit_service import (
     delete_control_unit_data,
 )
 
-router = APIRouter(tags=["Control Unit Data"])
+router = APIRouter()
 
 
 @router.post(

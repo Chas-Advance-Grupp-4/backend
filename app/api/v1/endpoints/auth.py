@@ -7,7 +7,7 @@ from app.services import auth_service, user_service
 from app.dependencies import get_db, get_current_user
 from app.models.user_model import User
 
-router = APIRouter(tags=["Users", "Authentication"])
+router = APIRouter()
 
 DbSession = Annotated[Session, Depends(get_db)]
 
