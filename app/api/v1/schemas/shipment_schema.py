@@ -2,6 +2,7 @@ from pydantic import BaseModel, field_validator
 from uuid import UUID
 from datetime import datetime
 from typing import Optional
+from app.models.shipment_model import ShipmentStatus
 
 """
 Module: shipment_schema.py
@@ -27,6 +28,13 @@ class ShipmentBase(BaseModel):
     receiver_id: UUID
     driver_id: Optional[UUID] = None
     sensor_unit_id: Optional[UUID] = None
+    status: ShipmentStatus = ShipmentStatus.created
+    min_temp: Optional[int] = None
+    max_temp: Optional[int] = None
+    min_humidity: Optional[int] = None
+    max_humidity: Optional[int] = None
+    delivery_address: Optional[str] = None
+    pickup_address: Optional[str] = None
 
     @field_validator("shipment_number")
     def shipment_must_not_be_empty(cls, v: str) -> str:

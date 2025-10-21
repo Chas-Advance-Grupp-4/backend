@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from app.models.shipment_model import Shipment
+from app.models.shipment_model import Shipment, ShipmentStatus
 from app.api.v1.schemas.shipment_schema import ShipmentCreate
 from uuid import UUID
 
@@ -41,6 +41,13 @@ def create_shipment(db: Session, shipment: ShipmentCreate) -> Shipment:
         sender_id=ensure_uuid(shipment.sender_id),
         receiver_id=ensure_uuid(shipment.receiver_id),
         driver_id=ensure_uuid(shipment.driver_id),
+        status=shipment.status,
+        min_temp=shipment.min_temp,
+        max_temp=shipment.max_temp,
+        min_humidity=shipment.min_humidity,
+        max_humidity=shipment.max_humidity,
+        delivery_address=shipment.delivery_address,
+        pickup_address=shipment.pickup_address,
     )
     db.add(db_shipment)
     db.commit()
@@ -111,10 +118,16 @@ def update_shipment(
     if driver_id:
         db_shipment.driver_id = ensure_uuid(driver_id)
     if shipment_status:
-        db_shipment.status = shipment_status
+        db_shipment.status = ShipmentStatus(shipment_status)
     db.commit()
     db.refresh(db_shipment)
     return db_shipment
+
+
+# Create a function that can update all fields in the Shipment model
+# to allow updating existing shipments in the database with the new values.
+# Set with admin rights. Create endpoint later to use this function.
+# Make sure all comments are updated accordingly.
 
 
 def delete_shipment(db: Session, shipment_id: str | UUID) -> Shipment | None:
