@@ -156,7 +156,7 @@ jobs:
 
       - name: Build & Push Multi-Arch Docker Image
         run: |
-          if [ "${GITHUB_REF##*/}" == "develop" || "${GITHUB_REF##*/}" == "test-workflow" ]; then
+          if [ "${GITHUB_REF##*/}" == "develop" ]; then
             docker buildx build --platform linux/amd64,linux/arm64 \
               -t chasadvancegroup4/chas_advance_backend:${{ env.IMAGE_TAG }} \
               -t chasadvancegroup4/chas_advance_backend:latest \
