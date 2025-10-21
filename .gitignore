@@ -13,6 +13,7 @@
 
 # local env files
 .env*.local
+.coverage
 
 # Python virtual environment files
 .venv/
@@ -22,3 +23,6 @@ venv/
 pycache/
 *.pyc
 *.pyo
+
+# Doxygen generated documentation
+docs/html/

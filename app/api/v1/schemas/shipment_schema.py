@@ -1,26 +1,71 @@
 from pydantic import BaseModel, field_validator
 from uuid import UUID
 from datetime import datetime
+from typing import Optional
+
+"""
+Module: shipment_schema.py
+Description: Defines Pydantic models (schemas) for Shipment-related operations,
+including validation, creation, and reading.
+"""
 
 
 class ShipmentBase(BaseModel):
-    shipment: str
+    """
+    Base schema for shipments.
+
+    Attributes:
+        shipment_number (str): Unique identifier for the shipment.
+        sender_id (UUID): UUID of the sending user.
+        receiver_id (UUID): UUID of the receiving user.
+        driver_id (Optional[UUID]): UUID of the driver assigned to the shipment (optional).
+        sensor_unit_id (Optional[UUID]): UUID of the sensor unit associated with the shipment (optional).
+    """
+
+    shipment_number: str
     sender_id: UUID
     receiver_id: UUID
-    driver_id: UUID | None = None
+    driver_id: Optional[UUID] = None
+    sensor_unit_id: Optional[UUID] = None
 
-    @field_validator("shipment")
-    def shipment_must_not_be_empty(cls, v):
+    @field_validator("shipment_number")
+    def shipment_must_not_be_empty(cls, v: str) -> str:
+        """
+        Validates that the shipment_number field is not empty.
+
+        Args:
+            v (str): The shipment number.
+
+        Returns:
+            str: The validated shipment number.
+
+        Raises:
+            ValueError: If shipment_number is empty or whitespace only.
+        """
         if not v.strip():
-            raise ValueError("Shipment field empty.")
+            raise ValueError("Shipment_number field cannot be empty.")
         return v
 
 
 class ShipmentCreate(ShipmentBase):
+    """
+    Schema used when creating a new shipment.
+
+    Inherits all fields and validation from ShipmentBase.
+    """
+
     pass
 
 
 class ShipmentRead(ShipmentBase):
+    """
+    Schema used for reading shipment data from the database.
+
+    Attributes:
+        id (UUID): Unique identifier of the shipment.
+        created_at (datetime): Timestamp when the shipment was created.
+    """
+
     id: UUID
     created_at: datetime
 

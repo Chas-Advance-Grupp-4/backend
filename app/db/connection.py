@@ -2,26 +2,20 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 from app.config.settings import settings
 
+"""
+Module: connection.py
+Description: Configures the database connection for the application using SQLAlchemy.
+Provides the engine, session factory, and base class for models.
+"""
 
-# create_engine sets up the connection to your database.
-# echo=False means SQLAlchemy won't print every SQL query it makes (set to True for debugging)
-
-# Add connect_args={"check_same_thread": False} if using SQLite
-connect_args = {}
-if settings.DATABASE_URL.startswith("sqlite"):
-    connect_args = {"check_same_thread": False}
-
+# Create the engine for the database
 engine = create_engine(
     settings.DATABASE_URL,
-    echo=False,
-    connect_args=connect_args,  # Needed for SQLite when used with FastAPI/TestClient
+    echo=False,  # Set to True for SQL query logging
 )
 
-# sessionmaker creates a "SessionLocal" class.
-# Sessions are how you interact with your database (e.g., add, query, delete).
-# autocommit=False means you have to explicitly call .commit() to save changes.
-# autoflush=False means changes are not automatically written to the DB until commit/flush.
+# sessionmaker creates a SessionLocal class, used to instantiate DB sessions
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# declarative_base is used by your SQLAlchemy models to define database tables.
+# Base class for all SQLAlchemy models
 Base = declarative_base()
