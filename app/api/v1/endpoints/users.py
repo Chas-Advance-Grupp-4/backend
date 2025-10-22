@@ -1,9 +1,10 @@
 from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from app.dependencies import get_db, require_roles
-from app.api.v1.schemas.user_schema import UserRead, UserUpdate
+from app.dependencies import get_db, require_roles, get_current_user
+from app.api.v1.schemas.user_schema import UserCreate, UserRead, UserUpdate
 from app.services import user_service
+from app.models.user_model import User
 import uuid
 
 """
@@ -17,6 +18,34 @@ router = APIRouter()
 
 DbSession = Annotated[Session, Depends(get_db)]
 AdminOnly = Annotated[None, Depends(require_roles(["admin"]))]
+
+
+@router.post(
+    "/register",
+    response_model=UserRead,
+    status_code=status.HTTP_201_CREATED,
+    summary="Register a new user",
+)
+async def register_user(user: UserCreate, db: DbSession):
+    """
+    Registers a new user with a username, password, and role.
+
+    Args:
+        user (UserCreate): Pydantic model containing username, password, and role.
+        db (Session): Database session dependency.
+
+    Returns:
+        UserRead: The newly created user object.
+
+    Raises:
+        HTTPException 400: If the username is already taken.
+
+    Responses:
+        201 Created: Successfully created user.
+        400 Bad Request: Username already exists.
+    """
+    new_user = user_service.create_user(db, user)
+    return new_user
 
 
 @router.get("", response_model=list[UserRead], summary="List users (admin)")
@@ -39,6 +68,28 @@ async def list_users(db: DbSession, _: AdminOnly):
         401 Unauthorized: If the caller is not an admin.
     """
     return user_service.get_all_users(db)
+
+
+@router.get(
+    "/me",
+    response_model=UserRead,
+    summary="Get your own user",
+)
+async def fetch_current_user(current_user: Annotated[User, Depends(get_current_user)]):
+    """
+    Fetch the currently authenticated user's information.
+
+    Args:
+        current_user (User): Injected via JWT authentication dependency.
+
+    Returns:
+        UserRead: The currently authenticated user's details.
+
+    Responses:
+        200 OK: Successfully retrieved user data.
+        401 Unauthorized: Invalid or missing JWT token.
+    """
+    return current_user
 
 
 @router.get("/{user_id}", response_model=UserRead, summary="Get user by id (admin)")
