@@ -21,6 +21,15 @@ class ShipmentBase(BaseModel):
         receiver_id (UUID): UUID of the receiving user.
         driver_id (Optional[UUID]): UUID of the driver assigned to the shipment (optional).
         sensor_unit_id (Optional[UUID]): UUID of the sensor unit associated with the shipment (optional).
+        status (ShipmentStatus): Current status of the shipment which is an enum
+          that can be either created, assigned, in_transit, delivered or cancelled. Default to created
+        min_temp (Optional[int]): Minimum temperature threshold for the shipment (optional).
+        max_temp (Optional[int]): Maximum temperature threshold for the shipment (optional).
+        min_humidity (Optional[int]): Minimum humidity threshold for the shipment (optional).
+        max_humidity (Optional[int]): Maximum humidity threshold for the shipment (optional).
+        delivery_address (Optional[str]): Address where the shipment is to be delivered (optional).
+        pickup_address (Optional[str]): Address where the shipment is to be picked up (optional).
+
     """
 
     shipment_number: str
@@ -79,3 +88,40 @@ class ShipmentRead(ShipmentBase):
 
     class Config:
         orm_mode = True
+
+
+class ShipmentUpdate(BaseModel):
+    """
+    Schema used for updating shipment data.
+
+    All fields are optional and can be updated individually.
+    Only the fields provided will be updated in the database.
+
+    Attributes:
+        shipment_number (Optional[str]): New shipment number (optional).
+        sender_id (Optional[UUID]): UUID of the sending user (optional).
+        receiver_id (Optional[UUID]): UUID of the receiving user (optional).
+        driver_id (Optional[UUID]): UUID of the driver assigned to the shipment (optional).
+        sensor_unit_id (Optional[UUID]): UUID of the sensor unit associated with the shipment (optional).
+        status (Optional[ShipmentStatus]): Status of the shipment which can be either
+        created, assigned, in_transit, delivered, or cancelled (optional).
+        min_temp (Optional[int]): Minimum temperature threshold for the shipment (optional).
+        max_temp (Optional[int]): Maximum temperature threshold for the shipment (optional).
+        min_humidity (Optional[int]): Minimum humidity threshold for the shipment (optional).
+        max_humidity (Optional[int]): Maximum humidity threshold for the shipment (optional).
+        delivery_address (Optional[str]): Delivery address of the shipment (optional).
+        pickup_address (Optional[str]): Pickup address of the shipment (optional).
+    """
+
+    shipment_number: Optional[str] = None
+    sender_id: Optional[UUID] = None
+    receiver_id: Optional[UUID] = None
+    driver_id: Optional[UUID] = None
+    sensor_unit_id: Optional[UUID] = None
+    status: Optional[ShipmentStatus] = None
+    min_temp: Optional[int] = None
+    max_temp: Optional[int] = None
+    min_humidity: Optional[int] = None
+    max_humidity: Optional[int] = None
+    delivery_address: Optional[str] = None
+    pickup_address: Optional[str] = None

@@ -124,10 +124,17 @@ def update_shipment(
     return db_shipment
 
 
-# Create a function that can update all fields in the Shipment model
-# to allow updating existing shipments in the database with the new values.
-# Set with admin rights. Create endpoint later to use this function.
-# Make sure all comments are updated accordingly.
+def update_shipment_all_fields(db: Session, shipment_id: str | UUID, update_data: dict) -> Shipment | None:
+    shipment_id = ensure_uuid(shipment_id)
+    db_shipment = db.query(Shipment).filter(Shipment.id == shipment_id).first()
+    if not db_shipment:
+        return None
+    for key, value in update_data.items():
+        if value is not None:
+            setattr(db_shipment, key, value)
+    db.commit()
+    db.refresh(db_shipment)
+    return db_shipment
 
 
 def delete_shipment(db: Session, shipment_id: str | UUID) -> Shipment | None:

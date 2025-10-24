@@ -96,9 +96,9 @@ def test_get_shipments_role_filter(db_session):
     """
     sender_id = uuid4()
     driver_id = uuid4()
-    shipment1 = Shipment(shipment_number="S1", sender_id=sender_id, receiver_id=uuid4(), driver_id=None)
-    shipment2 = Shipment(shipment_number="S2", sender_id=uuid4(), receiver_id=sender_id, driver_id=driver_id)
-    shipment3 = Shipment(shipment_number="S3", sender_id=uuid4(), receiver_id=uuid4(), driver_id=driver_id)
+    shipment1 = Shipment(shipment_number="S1", sender_id=sender_id, receiver_id=uuid4(), driver_id=None, status=ShipmentStatus.created, min_temp=-10, max_temp=25, min_humidity=20, max_humidity=80, delivery_address="Addr1", pickup_address="Addr2")
+    shipment2 = Shipment(shipment_number="S2", sender_id=uuid4(), receiver_id=sender_id, driver_id=driver_id, status=ShipmentStatus.assigned, min_temp=-10, max_temp=25, min_humidity=20, max_humidity=80, delivery_address="Addr1", pickup_address="Addr2")
+    shipment3 = Shipment(shipment_number="S3", sender_id=uuid4(), receiver_id=uuid4(), driver_id=driver_id, status=ShipmentStatus.created, min_temp=-10, max_temp=25, min_humidity=20, max_humidity=80, delivery_address="Addr1", pickup_address="Addr2")
     db_session.add_all([shipment1, shipment2, shipment3])
     db_session.commit()
 
@@ -142,19 +142,25 @@ def test_update_shipment_status(db_session, shipment_payload):
 def test_update_shipment_all_fields(db_session, shipment_payload):
     """
     Purpose: Validate updating all updatable fields of a shipment.
-    Scenario: Create a shipment, then update driver_id and status. 
-    Expected: Shipment updated with new driver_id and status values.
+    Scenario: Create a shipment, then update driver_id, status, max_temp and delivery_address.
+    Expected: Shipment updated with new driver_id, status, max_temp and delivery_address values.
     """
     created = shipment_service.create_shipment(db_session, shipment_payload)
-    new_driver_id = uuid4()
-    updated = shipment_service.update_shipment(
+    update_data = {
+        "driver_id": uuid4(),
+        "status": ShipmentStatus.delivered.value,
+        "max_temp": 10,
+        "delivery_address": "New Address 123, New City"
+        }
+    updated = shipment_service.update_shipment_all_fields(
         db_session,
         created.id,
-        driver_id=new_driver_id,
-        shipment_status=ShipmentStatus.delivered.value
+        update_data
     )
-    assert updated.driver_id == new_driver_id
+    assert updated.driver_id == update_data["driver_id"]
     assert updated.status.value == ShipmentStatus.delivered.value
+    assert updated.max_temp == update_data["max_temp"]
+    assert updated.delivery_address == update_data["delivery_address"]
     
 
 def test_update_shipment_not_found(db_session):

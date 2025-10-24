@@ -46,13 +46,14 @@ class Shipment(Base):
         driver_id (UUID | None): Foreign key referencing the driver assigned to the shipment. Optional.
         sensor_unit_id (UUID | None): Optional reference to an associated sensor unit.
         created_at (datetime): Timestamp of when the shipment was created.
-        status (ShipmentStatus): Status of the shipment. (enum: created, assigned, in_transit, delivered, cancelled)
-        min_temp (int | None): Minimum temperature during shipment.
-        max_temp (int | None): Maximum temperature during shipment.
-        min_humidity (int | None): Minimum humidity during shipment.
-        max_humidity (int | None): Maximum humidity during shipment.
-        delivery_address (str | None): Delivery address.
-        pickup_address (str | None): Pickup address.
+        status (ShipmentStatus): Status of the shipment. Defaults to created
+        (enum: created, assigned, in_transit, delivered, cancelled)
+        min_temp (int | None): Minimum temperature during shipment. Optional.
+        max_temp (int | None): Maximum temperature during shipment. Optional.
+        min_humidity (int | None): Minimum humidity during shipment. Optional.
+        max_humidity (int | None): Maximum humidity during shipment. Optional.
+        delivery_address (str | None): Delivery address. Optional.
+        pickup_address (str | None): Pickup address. Optional.
     """
 
     __tablename__ = "shipments"

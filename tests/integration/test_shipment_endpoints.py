@@ -1,6 +1,7 @@
 import pytest
 from fastapi.testclient import TestClient
 from app.main import app
+from app.api.v1.schemas.shipment_schema import ShipmentStatus
 from uuid import uuid4
 
 client = TestClient(app)
@@ -13,13 +14,21 @@ client = TestClient(app)
 def shipment_payload():
     """
     Purpose: Provides a template shipment payload for tests.
-    Returns a dictionary with shipment_number, sender_id, receiver_id, and driver_id.
+    Returns a dictionary with shipment_number, sender_id, receiver_id, driver_id, status,
+    max and min temp, max and min humidity, delivery address and pickup address.
     """
     return {
         "shipment_number": f"Package-{uuid4()}",
         "sender_id": uuid4(),
         "receiver_id": uuid4(),
-        "driver_id": None
+        "driver_id": None,
+        "status": "created",
+        "min_temp": -15,
+        "max_temp": 20,
+        "min_humidity": 20,
+        "max_humidity": 80,
+        "delivery_address": "Delivery 1, 34456 Test City",
+        "pickup_address": "Pickup 1, 34456 Test City"
     }
 
 
@@ -95,6 +104,7 @@ def test_create_shipment_endpoint(shipment_payload, auth_headers):
     data = response.json()
     assert data["shipment_number"] == shipment_payload["shipment_number"]
     assert "id" in data
+    assert data["status"] == ShipmentStatus.created.value
 
 
 def test_get_shipment_by_id_endpoint(shipment_payload, auth_headers):
@@ -195,3 +205,76 @@ def test_fetch_current_users_shipments_customer_with_shipments_endpoint(shipment
     assert response.status_code == 200
     data = response.json()
     assert any(shipment["sender_id"] == str(user_id) or shipment["receiver_id"] == str(user_id) for shipment in data)
+
+def test_update_all_fields_endpoint(admin_headers, shipment_payload):
+    """
+    Purpose: Test updating multiple fields via PATCH /update-all/{id}.
+    Scenario: Admin creates a shipment, then updates multiple fields.
+    Expected: Updated fields reflect new values while other fields remain unchanged.
+    """
+
+    create_resp = client.post(
+        "/api/v1/shipments",
+        json={**shipment_payload,
+              "sender_id": str(shipment_payload["sender_id"]),
+              "receiver_id": str(shipment_payload["receiver_id"])},
+        headers=admin_headers,
+    )
+    shipment_id = create_resp.json()["id"]
+
+    
+    update_payload = {
+        "driver_id": str(uuid4()),
+        "status": "in_transit",
+        "min_temp": -10,
+        "max_temp": 25
+    }
+
+    response = client.patch(
+        f"/api/v1/shipments/update-all/{shipment_id}",
+        json=update_payload,
+        headers=admin_headers
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["driver_id"] == update_payload["driver_id"]
+    assert data["status"] == update_payload["status"]
+    assert data["min_temp"] == update_payload["min_temp"]
+    assert data["max_temp"] == update_payload["max_temp"]
+
+def test_update_all_fields_no_payload(admin_headers, shipment_payload):
+    """
+    Purpose: Test that attempting to update a shipment with no fields returns an error.
+    Scenario: Admin sends an empty payload to PATCH /update-all/{id}.
+    Expected: Response 400 indicating no fields provided for update.
+    """
+    create_resp = client.post(
+        "/api/v1/shipments",
+        json={**shipment_payload,
+              "sender_id": str(shipment_payload["sender_id"]),
+              "receiver_id": str(shipment_payload["receiver_id"])},
+        headers=admin_headers,
+    )
+    shipment_id = create_resp.json()["id"]
+
+    response = client.patch(
+        f"/api/v1/shipments/update-all/{shipment_id}",
+        json={},
+        headers=admin_headers
+    )
+
+    assert response.status_code == 400
+
+def test_update_all_fields_not_found(admin_headers):
+    """
+    Purpose: Test updating a non-existent shipment via PATCH /update-all/{id}.
+    Scenario: Admin attempts to update a shipment that does not exist.
+    Expected: Response 404 indicating shipment not found.
+    """
+    response = client.patch(
+        f"/api/v1/shipments/update-all/{uuid4()}",
+        json={"status": "delivered"},
+        headers=admin_headers
+    )
+    assert response.status_code == 404

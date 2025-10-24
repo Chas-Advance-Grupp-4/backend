@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from uuid import UUID
 from app.dependencies import get_db, require_roles, get_current_user
 from app.services import shipment_service
-from app.api.v1.schemas.shipment_schema import ShipmentCreate, ShipmentRead
+from app.api.v1.schemas.shipment_schema import ShipmentCreate, ShipmentRead, ShipmentUpdate
 from app.models.user_model import User
 
 router = APIRouter(tags=["Shipments"])
@@ -156,6 +156,40 @@ async def update_shipment(
     if not updated:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Shipment not found")
     return updated
+
+
+@router.patch("/update-all/{shipment_id}", response_model=ShipmentRead, summary="Update all shipment fields (admin only)")
+async def update_all_fields_for_shipment(shipment_id: UUID, payload: ShipmentUpdate, db: DbSession, _: AdminOnly):
+    """
+    Update multiple fields of a shipment.
+
+    Args:
+        shipment_id (UUID): The unique ID of the shipment to update.
+        payload (ShipmentUpdate): Pydantic model with the fields to update.
+        db (DbSession): Database session dependency.
+        _ (None): Dummy dependency to enforce admin-only access.
+
+    Returns:
+        ShipmentRead: The updated shipment object.
+
+    Raises:
+        HTTPException 400: If no fields are provided for update.
+        HTTPException 404: If the shipment does not exist.
+        HTTPException 401: If the caller is not authorized.
+
+    Responses:
+        200 OK: Returns the updated shipment.
+        400 Bad Request: No fields provided.
+        401 Unauthorized: Caller is not an admin.
+        404 Not Found: Shipment not found.
+    """
+    update_dict = payload.model_dump(exclude_unset=True)
+    if not update_dict:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No fields to update")
+    updated_shipment = shipment_service.update_shipment_all_fields(db, shipment_id, update_dict)
+    if not updated_shipment:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Shipment not found")
+    return updated_shipment
 
 
 @router.delete("/{shipment_id}", response_model=ShipmentRead, summary="Delete shipment (admin only)")
