@@ -30,7 +30,7 @@ def auth_headers(client):
     """
     unique_username = f"apiuser_{uuid4()}"
     user_data = {"username": unique_username, "password": "1234", "role": "customer"}
-    client.post("/api/v1/auth/register", json=user_data)
+    client.post("/api/v1/users/register", json=user_data)
     login_resp = client.post("/api/v1/auth/login", json={"username": unique_username, "password": "1234"})
     token = login_resp.json()["access_token"]
     return {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
@@ -42,7 +42,7 @@ def admin_headers(client):
     Purpose: Registers a new admin and returns auth headers for that user.
     """
     admin_username = f"admin_{uuid4()}"
-    client.post("/api/v1/auth/register", json={"username": admin_username, "password": "a", "role": "admin"})
+    client.post("/api/v1/users/register", json={"username": admin_username, "password": "a", "role": "admin"})
     login_resp = client.post("/api/v1/auth/login", json={"username": admin_username, "password": "a"})
     token = login_resp.json()["access_token"]
     return {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
@@ -54,7 +54,7 @@ def customer_headers(client):
     Purpose: Registers a new customer and returns auth headers and user_id.
     """
     username = f"customer_{uuid4()}"
-    register_resp = client.post("/api/v1/auth/register", json={"username": username, "password": "1234", "role": "customer"})
+    register_resp = client.post("/api/v1/users/register", json={"username": username, "password": "1234", "role": "customer"})
     user_id = register_resp.json()["id"]
     login_resp = client.post("/api/v1/auth/login", json={"username": username, "password": "1234"})
     token = login_resp.json()["access_token"]
