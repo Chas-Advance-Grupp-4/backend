@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.v1.routers.router_v1 import router as v1_router
 from app.config.settings import settings
+from app.utils.rate_limiter import add_rate_limiter_middleware
 
 """
 Module: main.py
@@ -36,6 +37,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Add rate limiting middleware with global settings
+add_rate_limiter_middleware(app)
+
 
 # Include API routers
 app.include_router(v1_router, prefix="/api/v1")

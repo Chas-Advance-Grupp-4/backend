@@ -96,9 +96,7 @@ def test_admin_crud_users_flow(client, admin_headers_fixture):
     # Create normal user
     user_username = f"user_{uuid4()}"
     create_resp = client.post(
-        "/api/v1/users/register",
-        json={"username": user_username, "password": "b", "role": "customer"},
-        headers=admin_headers_fixture
+        "/api/v1/users/register", json={"username": user_username, "password": "b", "role": "customer"}, headers=admin_headers_fixture
     )
     assert create_resp.status_code == 201
     user_id = create_resp.json()["id"]
@@ -110,11 +108,7 @@ def test_admin_crud_users_flow(client, admin_headers_fixture):
 
     # PATCH username
     new_username = f"patched_{uuid4()}"
-    patch_resp = client.patch(
-        f"/api/v1/users/{user_id}",
-        json={"username": new_username},
-        headers=admin_headers_fixture
-    )
+    patch_resp = client.patch(f"/api/v1/users/{user_id}", json={"username": new_username}, headers=admin_headers_fixture)
     assert patch_resp.status_code == 200
     assert patch_resp.json()["username"] == new_username
 

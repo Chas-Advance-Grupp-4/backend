@@ -50,7 +50,9 @@ def customer_headers(client, admin_headers_fixture):
     Purpose: Registers a new customer and returns auth headers and user_id.
     """
     username = f"customer_{uuid4()}"
-    register_resp = client.post("/api/v1/users/register", json={"username": username, "password": "1234", "role": "customer"}, headers=admin_headers_fixture)
+    register_resp = client.post(
+        "/api/v1/users/register", json={"username": username, "password": "1234", "role": "customer"}, headers=admin_headers_fixture
+    )
     user_id = register_resp.json()["id"]
     login_resp = client.post("/api/v1/auth/login", json={"username": username, "password": "1234"})
     token = login_resp.json()["access_token"]
@@ -63,7 +65,9 @@ def driver_headers(client, admin_headers_fixture):
     Purpose: Registers a new driver and returns auth headers and simulated user_id.
     """
     username = f"driver_{uuid4()}"
-    register_resp = client.post("/api/v1/auth/register", json={"username": username, "password": "1234", "role": "driver"}, headers=admin_headers_fixture)
+    register_resp = client.post(
+        "/api/v1/auth/register", json={"username": username, "password": "1234", "role": "driver"}, headers=admin_headers_fixture
+    )
     user_id = uuid4()  # Simulate UUID for driver shipments
     login_resp = client.post("/api/v1/auth/login", json={"username": username, "password": "1234"})
     token = login_resp.json()["access_token"]
