@@ -6,6 +6,7 @@ from app.api.v1.schemas.user_schema import not_empty, UserCreate, UserLogin
 # Tests for not_empty helper
 # -----------------------------
 
+
 def test_not_empty_with_valid_string():
     """
     Purpose: Verify that not_empty returns the string as-is if it contains non-whitespace characters.
@@ -16,6 +17,7 @@ def test_not_empty_with_valid_string():
     result = not_empty("Username", value)
     assert result == "Anna"
 
+
 def test_not_empty_preserves_whitespace():
     """
     Purpose: Ensure not_empty does not trim surrounding whitespace.
@@ -25,6 +27,7 @@ def test_not_empty_preserves_whitespace():
     value = "  Anna  "
     result = not_empty("Username", value)
     assert result == "  Anna  "
+
 
 def test_not_empty_raises_on_empty_string():
     """
@@ -37,9 +40,11 @@ def test_not_empty_raises_on_empty_string():
         not_empty("Username", empty_value)
     assert "Username field empty." in str(exc_info.value)
 
+
 # -----------------------------
 # Tests for UserCreate schema
 # -----------------------------
+
 
 def test_usercreate_valid():
     """
@@ -51,6 +56,7 @@ def test_usercreate_valid():
     assert user.username == "Bobby"
     assert user.role == "customer"
 
+
 def test_usercreate_empty_username():
     """
     Purpose: Ensure validation fails for empty username.
@@ -61,6 +67,7 @@ def test_usercreate_empty_username():
         UserCreate(username="", password="secret", role="customer")
     assert any("Username field empty." in e["msg"] for e in exc_info.value.errors())
 
+
 def test_usercreate_empty_password():
     """
     Purpose: Ensure validation fails for empty password.
@@ -70,6 +77,7 @@ def test_usercreate_empty_password():
     with pytest.raises(ValidationError) as exc_info:
         UserCreate(username="Bobby", password="", role="customer")
     assert any("Password field empty." in e["msg"] for e in exc_info.value.errors())
+
 
 def test_usercreate_invalid_role():
     """
@@ -82,9 +90,11 @@ def test_usercreate_invalid_role():
     errors = exc_info.value.errors()
     assert any(e["loc"] == ("role",) for e in errors)
 
+
 # -----------------------------
 # Tests for UserLogin schema
 # -----------------------------
+
 
 def test_userlogin_valid():
     """
@@ -96,6 +106,7 @@ def test_userlogin_valid():
     assert login.username == "Anna"
     assert login.password == "1234"
 
+
 def test_userlogin_empty_username():
     """
     Purpose: Ensure validation fails for empty username in login.
@@ -105,6 +116,7 @@ def test_userlogin_empty_username():
     with pytest.raises(ValidationError) as exc_info:
         UserLogin(username="   ", password="1234")
     assert any("Username field empty." in e["msg"] for e in exc_info.value.errors())
+
 
 def test_userlogin_empty_password():
     """

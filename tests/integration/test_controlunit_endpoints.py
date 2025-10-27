@@ -10,6 +10,7 @@ client = TestClient(app)
 # Fixtures
 # -------------------------
 
+
 @pytest.fixture
 def single_reading_payload():
     """
@@ -20,8 +21,9 @@ def single_reading_payload():
         "sensor_unit_id": str(uuid4()),
         "temperature": {"value": 22.5},
         "humidity": {"value": 55.0},
-        "timestamp": datetime.now(timezone.utc).isoformat()
+        "timestamp": datetime.now(timezone.utc).isoformat(),
     }
+
 
 @pytest.fixture
 def full_control_unit_payload(single_reading_payload):
@@ -32,6 +34,7 @@ def full_control_unit_payload(single_reading_payload):
     assert resp.status_code == 201
     data = resp.json()
     return {**single_reading_payload, "id": data["id"]}
+
 
 @pytest.fixture
 def device_data_payload():
@@ -46,14 +49,16 @@ def device_data_payload():
                 "sensor_units": [
                     {"sensor_unit_id": str(uuid4()), "temperature": 22.5, "humidity": 55.0},
                     {"sensor_unit_id": str(uuid4()), "temperature": 23.5, "humidity": 50.0},
-                ]
+                ],
             }
-        ]
+        ],
     }
+
 
 # -------------------------
 # Integration tests
 # -------------------------
+
 
 def test_post_single_reading(single_reading_payload):
     """
@@ -67,6 +72,7 @@ def test_post_single_reading(single_reading_payload):
     assert "id" in data
     assert data["sensor_unit_id"] == single_reading_payload["sensor_unit_id"]
 
+
 def test_post_grouped_device_data(device_data_payload):
     """
     Purpose: Test posting grouped device data via POST /control-unit.
@@ -79,6 +85,7 @@ def test_post_grouped_device_data(device_data_payload):
     total_readings = sum(len(group["sensor_units"]) for group in device_data_payload["timestamp_groups"])
     assert data["saved"] == total_readings
 
+
 def test_get_all_control_unit_data(full_control_unit_payload):
     """
     Purpose: Test retrieving all control unit data via GET /control-unit.
@@ -89,6 +96,7 @@ def test_get_all_control_unit_data(full_control_unit_payload):
     assert resp.status_code == 200
     data = resp.json()
     assert any(d["id"] == full_control_unit_payload["id"] for d in data)
+
 
 def test_get_single_control_unit_data(full_control_unit_payload):
     """
@@ -101,6 +109,7 @@ def test_get_single_control_unit_data(full_control_unit_payload):
     assert resp.status_code == 200
     data = resp.json()
     assert data["id"] == data_id
+
 
 def test_delete_control_unit_data(full_control_unit_payload):
     """
