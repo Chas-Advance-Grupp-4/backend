@@ -4,7 +4,7 @@ from datetime import datetime
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from app.db.connection import Base
-from app.models.shipment_model import Shipment
+from app.models.shipment_model import Shipment, ShipmentStatus
 from app.services import shipment_service
 from app.api.v1.schemas.shipment_schema import ShipmentCreate
 
@@ -30,8 +30,19 @@ def shipment_payload():
     """
     Returns a valid ShipmentCreate payload for tests.
     """
-    return ShipmentCreate(shipment_number="Package 123", sender_id=uuid4(), receiver_id=uuid4(), driver_id=None)
-
+    return ShipmentCreate(
+        shipment_number="Package 123",
+        sender_id=uuid4(),
+        receiver_id=uuid4(),
+        driver_id=None,
+        status="created",
+        min_temp=-20,
+        max_temp=30,
+        min_humidity=10,
+        max_humidity=90,
+        delivery_address="Teststreet 3, Test, Testland",
+        pickup_address="TestPickup 3, Test, Testland"
+    )
 
 # -----------------------------
 # Tests
@@ -45,6 +56,13 @@ def test_create_shipment(db_session, shipment_payload):
     shipment = shipment_service.create_shipment(db_session, shipment_payload)
     assert shipment.id is not None
     assert shipment.shipment_number == shipment_payload.shipment_number
+    assert shipment.status == shipment_payload.status
+    assert shipment.min_temp == shipment_payload.min_temp
+    assert shipment.max_temp == shipment_payload.max_temp
+    assert shipment.min_humidity == shipment_payload.min_humidity
+    assert shipment.max_humidity == shipment_payload.max_humidity
+    assert shipment.delivery_address == shipment_payload.delivery_address
+    assert shipment.pickup_address == shipment_payload.pickup_address
 
 
 def test_get_shipment_by_id(db_session, shipment_payload):
@@ -79,9 +97,9 @@ def test_get_shipments_role_filter(db_session):
     """
     sender_id = uuid4()
     driver_id = uuid4()
-    shipment1 = Shipment(shipment_number="S1", sender_id=sender_id, receiver_id=uuid4(), driver_id=None)
-    shipment2 = Shipment(shipment_number="S2", sender_id=uuid4(), receiver_id=sender_id, driver_id=driver_id)
-    shipment3 = Shipment(shipment_number="S3", sender_id=uuid4(), receiver_id=uuid4(), driver_id=driver_id)
+    shipment1 = Shipment(shipment_number="S1", sender_id=sender_id, receiver_id=uuid4(), driver_id=None, status=ShipmentStatus.created, min_temp=-10, max_temp=25, min_humidity=20, max_humidity=80, delivery_address="Addr1", pickup_address="Addr2")
+    shipment2 = Shipment(shipment_number="S2", sender_id=uuid4(), receiver_id=sender_id, driver_id=driver_id, status=ShipmentStatus.assigned, min_temp=-10, max_temp=25, min_humidity=20, max_humidity=80, delivery_address="Addr1", pickup_address="Addr2")
+    shipment3 = Shipment(shipment_number="S3", sender_id=uuid4(), receiver_id=uuid4(), driver_id=driver_id, status=ShipmentStatus.created, min_temp=-10, max_temp=25, min_humidity=20, max_humidity=80, delivery_address="Addr1", pickup_address="Addr2")
     db_session.add_all([shipment1, shipment2, shipment3])
     db_session.commit()
 
@@ -101,7 +119,7 @@ def test_get_shipments_role_filter(db_session):
     assert shipment3 in results_admin
 
 
-def test_update_shipment(db_session, shipment_payload):
+def test_update_shipment_driver(db_session, shipment_payload):
     """
     Purpose: Validate updating shipment driver.
     Scenario: Create a shipment, then assign a new driver_id.
@@ -112,6 +130,39 @@ def test_update_shipment(db_session, shipment_payload):
     updated = shipment_service.update_shipment(db_session, created.id, driver_id=new_driver_id)
     assert updated.driver_id == new_driver_id
 
+def test_update_shipment_status(db_session, shipment_payload):
+    """
+    Purpose: Validate updating shipment status.
+    Scenario: Create a shipment, then update its status.
+    Expected: Shipment updated with new status.
+    """
+    created = shipment_service.create_shipment(db_session, shipment_payload)
+    updated = shipment_service.update_shipment(db_session, created.id, shipment_status=ShipmentStatus.in_transit.value)
+    assert updated.status.value == ShipmentStatus.in_transit.value
+
+def test_update_shipment_all_fields(db_session, shipment_payload):
+    """
+    Purpose: Validate updating all updatable fields of a shipment.
+    Scenario: Create a shipment, then update driver_id, status, max_temp and delivery_address.
+    Expected: Shipment updated with new driver_id, status, max_temp and delivery_address values.
+    """
+    created = shipment_service.create_shipment(db_session, shipment_payload)
+    update_data = {
+        "driver_id": uuid4(),
+        "status": ShipmentStatus.delivered.value,
+        "max_temp": 10,
+        "delivery_address": "New Address 123, New City"
+        }
+    updated = shipment_service.update_shipment_all_fields(
+        db_session,
+        created.id,
+        update_data
+    )
+    assert updated.driver_id == update_data["driver_id"]
+    assert updated.status.value == ShipmentStatus.delivered.value
+    assert updated.max_temp == update_data["max_temp"]
+    assert updated.delivery_address == update_data["delivery_address"]
+    
 
 def test_update_shipment_not_found(db_session):
     """
