@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from app.models.shipment_model import Shipment
+from app.models.shipment_model import Shipment, ShipmentStatus
 from app.api.v1.schemas.shipment_schema import ShipmentCreate
 from uuid import UUID
 
@@ -41,6 +41,13 @@ def create_shipment(db: Session, shipment: ShipmentCreate) -> Shipment:
         sender_id=ensure_uuid(shipment.sender_id),
         receiver_id=ensure_uuid(shipment.receiver_id),
         driver_id=ensure_uuid(shipment.driver_id),
+        status=shipment.status,
+        min_temp=shipment.min_temp,
+        max_temp=shipment.max_temp,
+        min_humidity=shipment.min_humidity,
+        max_humidity=shipment.max_humidity,
+        delivery_address=shipment.delivery_address,
+        pickup_address=shipment.pickup_address,
     )
     db.add(db_shipment)
     db.commit()
@@ -111,7 +118,20 @@ def update_shipment(
     if driver_id:
         db_shipment.driver_id = ensure_uuid(driver_id)
     if shipment_status:
-        db_shipment.status = shipment_status
+        db_shipment.status = ShipmentStatus(shipment_status)
+    db.commit()
+    db.refresh(db_shipment)
+    return db_shipment
+
+
+def update_shipment_all_fields(db: Session, shipment_id: str | UUID, update_data: dict) -> Shipment | None:
+    shipment_id = ensure_uuid(shipment_id)
+    db_shipment = db.query(Shipment).filter(Shipment.id == shipment_id).first()
+    if not db_shipment:
+        return None
+    for key, value in update_data.items():
+        if value is not None:
+            setattr(db_shipment, key, value)
     db.commit()
     db.refresh(db_shipment)
     return db_shipment
