@@ -170,3 +170,32 @@ jobs:
           else
             echo "Not pushing image, branch is not develop or main."
           fi
+
+  Deploy_to_Azure:
+    name: Deploy Docker Image to Azure Web App
+    runs-on: ubuntu-latest
+    needs: Docker_Build_and_Push_Docker_Image
+    if: ${{ github.event.repository.fork == false && needs.Check_if_job_should_run.outputs.version_changed == 'true' }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Set IMAGE_TAG from VERSION
+        run: |
+          IMAGE_TAG=$(cat VERSION)
+          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
+
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Update Azure Web App container
+        run: |
+          az webapp config container set \
+            -g team_4 \
+            -n grupp4AWA \
+            --container-image-name chasadvancegroup4/chas_advance_backend:${{ env.IMAGE_TAG }}
+          az webapp restart -g team_4 -n grupp4AWA

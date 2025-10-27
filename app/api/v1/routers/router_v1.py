@@ -14,8 +14,8 @@ router.include_router(auth.router, prefix="/auth", tags=["Auth"])
 # User management endpoints
 # ----------------------------
 # Mounted under /users
-# Admin-only: list, update, delete users
-router.include_router(users.router, prefix="/users", tags=["Users (admin)"])
+# list, update, delete users
+router.include_router(users.router, prefix="/users", tags=["Users"])
 
 # ----------------------------
 # Shipment management endpoints

@@ -10,6 +10,7 @@ client = TestClient(app)
 # Fixtures
 # -----------------------------
 
+
 @pytest.fixture
 def shipment_payload():
     """
@@ -33,37 +34,37 @@ def shipment_payload():
 
 
 @pytest.fixture
-def auth_headers(client):
+def auth_headers(client, admin_headers_fixture):
     """
     Purpose: Registers a new customer and returns auth headers for that user.
     """
     unique_username = f"apiuser_{uuid4()}"
     user_data = {"username": unique_username, "password": "1234", "role": "customer"}
-    client.post("/api/v1/auth/register", json=user_data)
+    client.post("/api/v1/users/register", json=user_data, headers=admin_headers_fixture)
     login_resp = client.post("/api/v1/auth/login", json={"username": unique_username, "password": "1234"})
     token = login_resp.json()["access_token"]
     return {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
 
 
 @pytest.fixture
-def admin_headers(client):
+def admin_headers(client, admin_headers_fixture):
     """
     Purpose: Registers a new admin and returns auth headers for that user.
     """
     admin_username = f"admin_{uuid4()}"
-    client.post("/api/v1/auth/register", json={"username": admin_username, "password": "a", "role": "admin"})
+    client.post("/api/v1/users/register", json={"username": admin_username, "password": "a", "role": "admin"}, headers=admin_headers_fixture)
     login_resp = client.post("/api/v1/auth/login", json={"username": admin_username, "password": "a"})
     token = login_resp.json()["access_token"]
     return {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
 
 
 @pytest.fixture
-def customer_headers(client):
+def customer_headers(client, admin_headers_fixture):
     """
     Purpose: Registers a new customer and returns auth headers and user_id.
     """
     username = f"customer_{uuid4()}"
-    register_resp = client.post("/api/v1/auth/register", json={"username": username, "password": "1234", "role": "customer"})
+    register_resp = client.post("/api/v1/users/register", json={"username": username, "password": "1234", "role": "customer"}, headers=admin_headers_fixture)
     user_id = register_resp.json()["id"]
     login_resp = client.post("/api/v1/auth/login", json={"username": username, "password": "1234"})
     token = login_resp.json()["access_token"]
@@ -71,12 +72,12 @@ def customer_headers(client):
 
 
 @pytest.fixture
-def driver_headers(client):
+def driver_headers(client, admin_headers_fixture):
     """
     Purpose: Registers a new driver and returns auth headers and simulated user_id.
     """
     username = f"driver_{uuid4()}"
-    register_resp = client.post("/api/v1/auth/register", json={"username": username, "password": "1234", "role": "driver"})
+    register_resp = client.post("/api/v1/auth/register", json={"username": username, "password": "1234", "role": "driver"}, headers=admin_headers_fixture)
     user_id = uuid4()  # Simulate UUID for driver shipments
     login_resp = client.post("/api/v1/auth/login", json={"username": username, "password": "1234"})
     token = login_resp.json()["access_token"]
@@ -87,6 +88,7 @@ def driver_headers(client):
 # Shipment endpoint tests
 # -----------------------------
 
+
 def test_create_shipment_endpoint(shipment_payload, auth_headers):
     """
     Purpose: Test creating a shipment via POST /shipments.
@@ -95,9 +97,7 @@ def test_create_shipment_endpoint(shipment_payload, auth_headers):
     """
     response = client.post(
         "/api/v1/shipments",
-        json={**shipment_payload,
-              "sender_id": str(shipment_payload["sender_id"]),
-              "receiver_id": str(shipment_payload["receiver_id"])},
+        json={**shipment_payload, "sender_id": str(shipment_payload["sender_id"]), "receiver_id": str(shipment_payload["receiver_id"])},
         headers=auth_headers,
     )
     assert response.status_code == 200
@@ -115,9 +115,7 @@ def test_get_shipment_by_id_endpoint(shipment_payload, auth_headers):
     """
     create_resp = client.post(
         "/api/v1/shipments",
-        json={**shipment_payload,
-              "sender_id": str(shipment_payload["sender_id"]),
-              "receiver_id": str(shipment_payload["receiver_id"])},
+        json={**shipment_payload, "sender_id": str(shipment_payload["sender_id"]), "receiver_id": str(shipment_payload["receiver_id"])},
         headers=auth_headers,
     )
     shipment_id = create_resp.json()["id"]
@@ -135,9 +133,7 @@ def test_update_shipment_endpoint(shipment_payload, admin_headers):
     """
     create_resp = client.post(
         "/api/v1/shipments",
-        json={**shipment_payload,
-              "sender_id": str(shipment_payload["sender_id"]),
-              "receiver_id": str(shipment_payload["receiver_id"])},
+        json={**shipment_payload, "sender_id": str(shipment_payload["sender_id"]), "receiver_id": str(shipment_payload["receiver_id"])},
         headers=admin_headers,
     )
     shipment_id = create_resp.json()["id"]
@@ -156,9 +152,7 @@ def test_delete_shipment_endpoint(shipment_payload, admin_headers):
     """
     create_resp = client.post(
         "/api/v1/shipments",
-        json={**shipment_payload,
-              "sender_id": str(shipment_payload["sender_id"]),
-              "receiver_id": str(shipment_payload["receiver_id"])},
+        json={**shipment_payload, "sender_id": str(shipment_payload["sender_id"]), "receiver_id": str(shipment_payload["receiver_id"])},
         headers=admin_headers,
     )
     shipment_id = create_resp.json()["id"]
@@ -194,9 +188,7 @@ def test_fetch_current_users_shipments_customer_with_shipments_endpoint(shipment
 
     create_resp = client.post(
         "/api/v1/shipments",
-        json={**shipment_payload,
-              "sender_id": str(shipment_payload["sender_id"]),
-              "receiver_id": str(shipment_payload["receiver_id"])},
+        json={**shipment_payload, "sender_id": str(shipment_payload["sender_id"]), "receiver_id": str(shipment_payload["receiver_id"])},
         headers=headers,
     )
     assert create_resp.status_code == 200

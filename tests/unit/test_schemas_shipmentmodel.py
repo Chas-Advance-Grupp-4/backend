@@ -8,12 +8,14 @@ from app.api.v1.schemas.shipment_schema import ShipmentCreate, ShipmentRead, Shi
 # Tests for ShipmentCreate schema
 # -----------------------------
 
+
 def test_shipment_create_valid():
     """
     Purpose: Verify that a valid ShipmentCreate object is instantiated correctly.
     Scenario: All required fields provided with valid UUIDs and other valid data.
     Expected: Object is created successfully, shipment_number and status matches input.
     """
+<<<<<<< HEAD
     shipment = ShipmentCreate(
         shipment_number="Valid Package",
         sender_id=uuid4(),
@@ -27,8 +29,12 @@ def test_shipment_create_valid():
         delivery_address="Test 123, 34567 Test City",
         pickup_address="TestPickup 6, 34567 Test City"
     )
+=======
+    shipment = ShipmentCreate(shipment_number="Valid Package", sender_id=uuid4(), receiver_id=uuid4(), driver_id=None)
+>>>>>>> develop
     assert shipment.shipment_number == "Valid Package"
     assert shipment.status == ShipmentStatus.created
+
 
 def test_shipment_create_missing_shipment_number():
     """
@@ -37,11 +43,8 @@ def test_shipment_create_missing_shipment_number():
     Expected: ValidationError is raised.
     """
     with pytest.raises(ValidationError):
-        ShipmentCreate(
-            shipment_number="",
-            sender_id=uuid4(),
-            receiver_id=uuid4()
-        )
+        ShipmentCreate(shipment_number="", sender_id=uuid4(), receiver_id=uuid4())
+
 
 def test_shipment_create_invalid_uuid():
     """
@@ -50,15 +53,13 @@ def test_shipment_create_invalid_uuid():
     Expected: ValidationError is raised.
     """
     with pytest.raises(ValidationError):
-        ShipmentCreate(
-            shipment_number="Test Package",
-            sender_id="not-a-uuid",
-            receiver_id="not-a-uuid"
-        )
+        ShipmentCreate(shipment_number="Test Package", sender_id="not-a-uuid", receiver_id="not-a-uuid")
+
 
 # -----------------------------
 # Tests for ShipmentRead schema
 # -----------------------------
+
 
 def test_shipment_read_schema():
     """

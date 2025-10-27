@@ -7,7 +7,7 @@ from app.services import shipment_service
 from app.api.v1.schemas.shipment_schema import ShipmentCreate, ShipmentRead, ShipmentUpdate
 from app.models.user_model import User
 
-router = APIRouter(tags=["Shipments"])
+router = APIRouter()
 
 # Dependencies
 DbSession = Annotated[Session, Depends(get_db)]

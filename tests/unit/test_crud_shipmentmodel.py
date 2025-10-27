@@ -8,6 +8,7 @@ from app.models.shipment_model import Shipment, ShipmentStatus
 from app.services import shipment_service
 from app.api.v1.schemas.shipment_schema import ShipmentCreate
 
+
 # -----------------------------
 # Fixtures
 # -----------------------------
@@ -29,6 +30,7 @@ def shipment_payload():
     """
     Returns a valid ShipmentCreate payload for tests.
     """
+<<<<<<< HEAD
     return ShipmentCreate(
         shipment_number="Package 123",
         sender_id=uuid4(),
@@ -42,6 +44,10 @@ def shipment_payload():
         delivery_address="Teststreet 3, Test, Testland",
         pickup_address="TestPickup 3, Test, Testland"
     )
+=======
+    return ShipmentCreate(shipment_number="Package 123", sender_id=uuid4(), receiver_id=uuid4(), driver_id=None)
+
+>>>>>>> develop
 
 # -----------------------------
 # Tests

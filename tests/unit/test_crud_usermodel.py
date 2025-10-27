@@ -7,6 +7,7 @@ from fastapi import HTTPException
 # Tests for user_service CRUD
 # -----------------------------
 
+
 def test_create_user(db_session):
     """
     Purpose: Validate that a new user is created successfully.
@@ -58,5 +59,6 @@ def test_get_all_users(db_session):
     create_user(db_session, UserCreate(username="Calle", password="2", role="driver"))
     create_user(db_session, UserCreate(username="Therese", password="3", role="admin"))
     users = get_all_users(db_session)
+    users = [u for u in get_all_users(db_session) if u.username != "admin"] # Exclude default global admin
     assert len(users) == 3
     assert {u.username for u in users} == {"Peter", "Calle", "Therese"}
