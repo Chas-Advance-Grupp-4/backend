@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from uuid import UUID
 from app.dependencies import get_db, require_roles, get_current_user
 from app.services import shipment_service
-from app.api.v1.schemas.shipment_schema import ShipmentCreate, ShipmentRead, ShipmentUpdate
+from app.api.v1.schemas.shipment_schema import ShipmentCreate, ShipmentRead, ShipmentUpdate, ShipmentStatus
 from app.models.user_model import User
 
 router = APIRouter()
@@ -128,6 +128,7 @@ async def get_shipment(shipment_id: UUID, db: DbSession):
 async def update_shipment(
     shipment_id: UUID,
     driver_id: UUID | None = None,
+    status: ShipmentStatus | None = None,
     db: DbSession = DbSession,
     _: AdminOnly = AdminOnly,
 ):
@@ -137,6 +138,7 @@ async def update_shipment(
     Args:
         shipment_id (UUID): The unique ID of the shipment to update.
         driver_id (UUID | None): Optional driver UUID to assign.
+        status (ShipmentStatus | None): Optional new status for the shipment.
         db (DbSession): Database session dependency.
         _ (None): Dummy dependency to enforce admin-only access.
 
@@ -152,7 +154,7 @@ async def update_shipment(
         401 Unauthorized: Caller is not an admin.
         404 Not Found: Shipment not found.
     """
-    updated = shipment_service.update_shipment(db, shipment_id, driver_id)
+    updated = shipment_service.update_shipment(db, shipment_id, driver_id, status.value if status else None)
     if not updated:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Shipment not found")
     return updated

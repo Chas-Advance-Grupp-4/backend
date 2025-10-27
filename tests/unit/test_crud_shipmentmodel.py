@@ -30,7 +30,6 @@ def shipment_payload():
     """
     Returns a valid ShipmentCreate payload for tests.
     """
-<<<<<<< HEAD
     return ShipmentCreate(
         shipment_number="Package 123",
         sender_id=uuid4(),
@@ -44,10 +43,6 @@ def shipment_payload():
         delivery_address="Teststreet 3, Test, Testland",
         pickup_address="TestPickup 3, Test, Testland"
     )
-=======
-    return ShipmentCreate(shipment_number="Package 123", sender_id=uuid4(), receiver_id=uuid4(), driver_id=None)
-
->>>>>>> develop
 
 # -----------------------------
 # Tests

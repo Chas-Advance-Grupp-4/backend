@@ -63,6 +63,24 @@ class ShipmentBase(BaseModel):
             raise ValueError("Shipment_number field cannot be empty.")
         return v
 
+    @field_validator("min_temp", "max_temp")
+    def temperature_must_be_valid(cls, v: int) -> int:
+        if not (-100 <= v <= 100):
+            raise ValueError("Temperature must be between -100 and 100")
+        return v
+
+    @field_validator("min_humidity", "max_humidity")
+    def humidity_must_be_valid(cls, v: int) -> int:
+        if not (0 <= v <= 100):
+            raise ValueError("Humidity must be between 0 and 100")
+        return v
+
+    @field_validator("delivery_address", "pickup_address")
+    def address_must_not_be_empty(cls, v: str) -> Optional[str]:
+        if not v.strip():
+            raise ValueError("Address fields cannot be empty.")
+        return v
+
 
 class ShipmentCreate(ShipmentBase):
     """

@@ -48,12 +48,12 @@ class Shipment(Base):
         created_at (datetime): Timestamp of when the shipment was created.
         status (ShipmentStatus): Status of the shipment. Defaults to created
         (enum: created, assigned, in_transit, delivered, cancelled)
-        min_temp (int | None): Minimum temperature during shipment. Optional.
-        max_temp (int | None): Maximum temperature during shipment. Optional.
-        min_humidity (int | None): Minimum humidity during shipment. Optional.
-        max_humidity (int | None): Maximum humidity during shipment. Optional.
-        delivery_address (str | None): Delivery address. Optional.
-        pickup_address (str | None): Pickup address. Optional.
+        min_temp (int): Minimum temperature during shipment.
+        max_temp (int): Maximum temperature during shipment.
+        min_humidity (int): Minimum humidity during shipment.
+        max_humidity (int): Maximum humidity during shipment.
+        delivery_address (str): Delivery address.
+        pickup_address (str): Pickup address.
     """
 
     __tablename__ = "shipments"
@@ -66,9 +66,9 @@ class Shipment(Base):
     sensor_unit_id = Column(UUID(as_uuid=True), nullable=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     status = Column(Enum(ShipmentStatus), default=ShipmentStatus.created, nullable=False)
-    min_temp = Column(Integer, nullable=True)
-    max_temp = Column(Integer, nullable=True)
-    min_humidity = Column(Integer, nullable=True)
-    max_humidity = Column(Integer, nullable=True)
-    delivery_address = Column(String(255), nullable=True)
-    pickup_address = Column(String(255), nullable=True)
+    min_temp = Column(Integer, nullable=False)
+    max_temp = Column(Integer, nullable=False)
+    min_humidity = Column(Integer, nullable=False)
+    max_humidity = Column(Integer, nullable=False)
+    delivery_address = Column(String(255), nullable=False)
+    pickup_address = Column(String(255), nullable=False)
