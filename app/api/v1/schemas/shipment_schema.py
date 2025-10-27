@@ -143,3 +143,14 @@ class ShipmentUpdate(BaseModel):
     max_humidity: Optional[int] = None
     delivery_address: Optional[str] = None
     pickup_address: Optional[str] = None
+
+
+class ShipmentReadFrontend(ShipmentRead):
+    """
+    Schema used for reading shipment data from the database for frontend purposes.
+
+    Inherits all fields and validation from ShipmentRead.
+    """
+
+    temperature: Optional[float]
+    humidity: Optional[float]
