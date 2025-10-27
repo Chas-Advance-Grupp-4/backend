@@ -26,7 +26,7 @@ AdminOnly = Annotated[None, Depends(require_roles(["admin"]))]
     status_code=status.HTTP_201_CREATED,
     summary="Register a new user",
 )
-async def register_user(user: UserCreate, db: DbSession):
+async def register_user(user: UserCreate, db: DbSession, _: AdminOnly):
     """
     Registers a new user with a username, password, and role.
 

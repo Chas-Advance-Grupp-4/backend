@@ -20,6 +20,7 @@ from app.api.v1.schemas.control_unit_schema import (
 )
 from datetime import datetime
 
+
 # -----------------------------
 # Fixtures
 # -----------------------------

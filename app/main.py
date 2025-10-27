@@ -14,6 +14,9 @@ if settings.ENV == "development":
     allow_origins = [
         "http://localhost:5173",
         "http://127.0.0.1:5173",
+        "https://gentle-stone-0caf78303.3.azurestaticapps.net",
+        "https://ambitious-sea-0fd974703.3.azurestaticapps.net",
+        "https://gray-desert-0157fa003.3.azurestaticapps.net",
     ]
 else:
     allow_origins = [settings.FRONTEND_URL]
