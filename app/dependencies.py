@@ -7,6 +7,7 @@ from app.utils.JWT import decode_access_token
 from app.models.user_model import User
 from app.api.v1.schemas.auth_schema import TokenData
 from app.services.user_service import get_user_by_id
+from app.utils.JWT import decode_control_unit_secret_key
 
 """
 Module: auth_dependencies.py
@@ -19,6 +20,10 @@ bearer_scheme = HTTPBearer(
     bearerFormat="JWT",
     description="Login to create your JWT. Paste the access token from POST /api/v1/login to authorize.",
 )
+
+control_unit_scheme = HTTPBearer(
+    bearerFormat="JWT",
+    description="Paste the access token from your control unit (ESP32) to authorize.")
 
 
 def get_db():
@@ -80,6 +85,23 @@ async def get_current_user(
     if user is None:
         raise credentials_exception
     return user
+
+
+def get_current_control_unit(token: HTTPAuthorizationCredentials = Depends(control_unit_scheme)) -> dict:
+    """
+    Validates a JWT token from a control unit (ESP32) using the utility function,
+    and returns its payload.
+
+    Raises HTTPException if token is invalid or missing required fields.
+    """
+    payload = decode_control_unit_secret_key(token.credentials)
+    if payload is None or "unit_id" not in payload:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate control unit token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    return payload
 
 
 def require_roles(roles: list[str]):
