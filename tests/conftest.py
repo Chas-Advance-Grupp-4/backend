@@ -7,6 +7,8 @@ import pytest
 os.environ["DATABASE_URL"] = "sqlite:///./test.db"  # File-based SQLite
 os.environ["SECRET_KEY"] = "testsecret"
 os.environ["ACCESS_TOKEN_EXPIRE_MINUTES"] = "30"
+os.environ["CONTROL_UNIT_SECRET_KEY"] = "test_control_unit_secret"
+
 
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine

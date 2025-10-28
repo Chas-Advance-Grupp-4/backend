@@ -22,8 +22,8 @@ bearer_scheme = HTTPBearer(
 )
 
 control_unit_scheme = HTTPBearer(
-    bearerFormat="JWT",
-    description="Paste the access token from your control unit (ESP32) to authorize.")
+    bearerFormat="JWT", description="Paste the access token from your control unit (ESP32) to authorize."
+)
 
 
 def get_db():

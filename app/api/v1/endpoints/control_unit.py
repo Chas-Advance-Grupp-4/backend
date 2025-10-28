@@ -29,9 +29,7 @@ router = APIRouter()
     summary="Create a single control unit reading (for testing only)",
 )
 def create(
-    data: ControlUnitDataCreate,
-    db: Session = Depends(get_db),
-    current_unit: dict = Depends(get_current_control_unit)
+    data: ControlUnitDataCreate, db: Session = Depends(get_db), current_unit: dict = Depends(get_current_control_unit)
 ):
     """
     Create a single control unit reading in the database.
@@ -71,9 +69,7 @@ def create(
     summary="Receive grouped readings from a control unit",
 )
 def receive_device_data(
-    data: DeviceData,
-    db: Session = Depends(get_db),
-    current_unit: dict = Depends(get_current_control_unit)
+    data: DeviceData, db: Session = Depends(get_db), current_unit: dict = Depends(get_current_control_unit)
 ):
     """
     Save grouped sensor readings sent by a control unit.
@@ -116,6 +112,7 @@ def receive_device_data(
 
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Unexpected error: {str(e)}")
+
 
 @router.get(
     "/",

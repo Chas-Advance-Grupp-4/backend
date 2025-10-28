@@ -8,10 +8,7 @@ ALGORITHM = "HS256"
 
 mock_unit_id = str(uuid.uuid4())
 
-payload = {
-    "unit_id": mock_unit_id,
-    "exp": datetime.now(timezone.utc) + timedelta(minutes=30)
-}
+payload = {"unit_id": mock_unit_id, "exp": datetime.now(timezone.utc) + timedelta(minutes=30)}
 
 token = jwt.encode(payload, CONTROL_UNIT_SECRET_KEY, algorithm=ALGORITHM)
 print("Your mocked jwt is:\n")
