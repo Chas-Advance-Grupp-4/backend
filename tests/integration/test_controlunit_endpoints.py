@@ -1,8 +1,10 @@
 import pytest
 from fastapi.testclient import TestClient
 from uuid import uuid4
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from app.main import app
+import jwt
+from app.config.settings import settings
 
 client = TestClient(app)
 
@@ -12,12 +14,24 @@ client = TestClient(app)
 
 
 @pytest.fixture
-def single_reading_payload():
+def control_unit_token_and_id():
+    unit_id = str(uuid4())
+    payload = {
+        "unit_id": unit_id,
+        "exp": datetime.now(timezone.utc) + timedelta(minutes=30),
+    }
+    token = jwt.encode(payload, settings.CONTROL_UNIT_SECRET_KEY, algorithm=settings.ALGORITHM)
+    return token, unit_id
+
+
+@pytest.fixture
+def single_reading_payload(control_unit_token_and_id):
     """
-    Purpose: Provides a single reading payload for testing /single-reading endpoint.
+    Provides a single reading payload with control_unit_id matching the JWT token.
     """
+    _, unit_id = control_unit_token_and_id
     return {
-        "control_unit_id": str(uuid4()),
+        "control_unit_id": unit_id,
         "sensor_unit_id": str(uuid4()),
         "temperature": {"value": 22.5},
         "humidity": {"value": 55.0},
@@ -26,23 +40,32 @@ def single_reading_payload():
 
 
 @pytest.fixture
-def full_control_unit_payload(single_reading_payload):
+def full_control_unit_payload(single_reading_payload, control_unit_token_and_id):
     """
-    Purpose: Creates a single reading in the system and returns its full payload including ID.
+    Purpose: Creates a single reading in the system via POST and returns its full payload including ID.
     """
-    resp = client.post("/api/v1/control-unit/single-reading", json=single_reading_payload)
+    token, _ = control_unit_token_and_id
+    headers = {"Authorization": f"Bearer {token}"}
+
+    resp = client.post(
+        "/api/v1/control-unit/single-reading",
+        json=single_reading_payload,
+        headers=headers
+    )
     assert resp.status_code == 201
     data = resp.json()
     return {**single_reading_payload, "id": data["id"]}
 
 
 @pytest.fixture
-def device_data_payload():
+def device_data_payload(control_unit_token_and_id):
     """
-    Purpose: Provides a grouped device data payload for testing /control-unit POST endpoint.
+    Provides grouped device data payload for testing /control-unit POST endpoint,
+    with control_unit_id matching the JWT token.
     """
+    _, unit_id = control_unit_token_and_id
     return {
-        "control_unit_id": str(uuid4()),
+        "control_unit_id": unit_id,  
         "timestamp_groups": [
             {
                 "timestamp": int(datetime.now(timezone.utc).timestamp()),
@@ -60,26 +83,28 @@ def device_data_payload():
 # -------------------------
 
 
-def test_post_single_reading(single_reading_payload):
-    """
-    Purpose: Test creating a single reading via POST /control-unit/single-reading.
-    Scenario: Send valid single reading payload.
-    Expected: Response 201 with reading ID and matching sensor_unit_id.
-    """
-    resp = client.post("/api/v1/control-unit/single-reading", json=single_reading_payload)
+def test_post_single_reading(single_reading_payload, control_unit_token_and_id):
+    token, _ = control_unit_token_and_id
+    headers = {"Authorization": f"Bearer {token}"}
+    resp = client.post(
+        "/api/v1/control-unit/single-reading",
+        json=single_reading_payload,
+        headers=headers
+    )
     assert resp.status_code == 201
     data = resp.json()
     assert "id" in data
     assert data["sensor_unit_id"] == single_reading_payload["sensor_unit_id"]
 
 
-def test_post_grouped_device_data(device_data_payload):
-    """
-    Purpose: Test posting grouped device data via POST /control-unit.
-    Scenario: Send payload with multiple sensor readings in timestamp_groups.
-    Expected: Response 201 with saved count equal to total readings.
-    """
-    resp = client.post("/api/v1/control-unit/", json=device_data_payload)
+def test_post_grouped_device_data(device_data_payload, control_unit_token_and_id):
+    token, _ = control_unit_token_and_id
+    headers = {"Authorization": f"Bearer {token}"}
+    resp = client.post(
+        "/api/v1/control-unit/",
+        json=device_data_payload,
+        headers=headers
+    )
     assert resp.status_code == 201
     data = resp.json()
     total_readings = sum(len(group["sensor_units"]) for group in device_data_payload["timestamp_groups"])

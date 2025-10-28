@@ -95,6 +95,7 @@ jobs:
           TEST_DB_NAME: ${{ secrets.TEST_DB_NAME }}
           TEST_DB_PORT: ${{ secrets.TEST_DB_PORT }}
           SECRET_KEY_TEST: ${{ secrets.SECRET_KEY_TEST }}
+          CONTROL_UNIT_SECRET_KEY: ${{ secrets.CONTROL_UNIT_SECRET_KEY }}
 
   Docker_Build_and_Test_ARM64_Image:
     name: Builds and Tests ARM64 Docker Image
@@ -120,6 +121,7 @@ jobs:
           TEST_DB_NAME: ${{ secrets.TEST_DB_NAME }}
           TEST_DB_PORT: ${{ secrets.TEST_DB_PORT }}
           SECRET_KEY_TEST: ${{ secrets.SECRET_KEY_TEST }}
+          CONTROL_UNIT_SECRET_KEY: ${{ secrets.CONTROL_UNIT_SECRET_KEY }}
 
   Docker_Build_and_Push_Docker_Image:
     name: Build and Push Docker Image

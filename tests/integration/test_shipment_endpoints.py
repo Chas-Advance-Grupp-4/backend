@@ -285,16 +285,6 @@ def test_list_all_shipments_with_latest_values_admin_only(admin_headers):
     assert response.status_code == 200
     assert isinstance(response.json(), list)
 
-def test_list_all_shipments_with_latest_values_admin_only(admin_headers):
-    """
-    Purpose: Test listing all shipments with latest humidity and temperature (admin-only).
-    Scenario: Admin calls GET /shipments/all.
-    Expected: Response 200 and a list (can be empty if no shipments exist).
-    """
-    response = client.get("/api/v1/shipments/all", headers=admin_headers)
-    assert response.status_code == 200
-    assert isinstance(response.json(), list)
-
 def test_get_shipment_with_latest_values(admin_headers, shipment_payload):
     """
     Purpose: Test fetching a specific shipment with latest humidity and temperature.
