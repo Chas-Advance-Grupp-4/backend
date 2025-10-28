@@ -20,7 +20,6 @@ docker run -d --name ci_postgres --network ci_network \
   -e POSTGRES_PASSWORD="${TEST_DB_PASSWORD}" \
   -e POSTGRES_DB="${TEST_DB_NAME}" \
   -p "${TEST_DB_PORT}":5432 \
-  
   postgres:15
 
 # Vänta tills Postgres är redo
