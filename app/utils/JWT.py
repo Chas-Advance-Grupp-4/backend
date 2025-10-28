@@ -48,3 +48,20 @@ def decode_access_token(token: str) -> dict | None:
         return payload
     except PyJWTError:
         return None
+
+
+def decode_control_unit_secret_key(token: str) -> dict | None:
+    """
+    Decodes a JWT access token and returns its payload.
+
+    Args:
+        token (str): The JWT token string to decode.
+
+    Returns:
+        dict | None: The decoded payload if valid; None if the token is invalid or expired.
+    """
+    try:
+        payload = jwt.decode(token, settings.CONTROL_UNIT_SECRET_KEY, algorithms=[settings.ALGORITHM])
+        return payload
+    except PyJWTError:
+        return None

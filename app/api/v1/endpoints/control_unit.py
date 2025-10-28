@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 from uuid import UUID
 from app.dependencies import get_db
+from app.dependencies import get_current_control_unit
 from app.api.v1.schemas.control_unit_schema import (
     DeviceData,
     ControlUnitDataCreate,
@@ -27,7 +28,9 @@ router = APIRouter()
     status_code=status.HTTP_201_CREATED,
     summary="Create a single control unit reading (for testing only)",
 )
-def create(data: ControlUnitDataCreate, db: Session = Depends(get_db)):
+def create(
+    data: ControlUnitDataCreate, db: Session = Depends(get_db), current_unit: dict = Depends(get_current_control_unit)
+):
     """
     Create a single control unit reading in the database.
 
@@ -40,13 +43,23 @@ def create(data: ControlUnitDataCreate, db: Session = Depends(get_db)):
 
     Raises:
         HTTPException 400: If validation fails.
+        HTTPException 403: If control unit ID in body doesn't match token.
         HTTPException 500: On database errors.
-
-    Responses:
-        201 Created: Successfully created reading.
-        400 Bad Request: Invalid input.
-        500 Internal Server Error: Database failure.
     """
+    try:
+        token_unit_id = UUID(current_unit["unit_id"])
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid control unit ID in token",
+        )
+
+    if data.control_unit_id != token_unit_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Control unit ID does not match token",
+        )
+
     return create_control_unit_data(db, data)
 
 
@@ -55,7 +68,9 @@ def create(data: ControlUnitDataCreate, db: Session = Depends(get_db)):
     status_code=status.HTTP_201_CREATED,
     summary="Receive grouped readings from a control unit",
 )
-def receive_device_data(data: DeviceData, db: Session = Depends(get_db)):
+def receive_device_data(
+    data: DeviceData, db: Session = Depends(get_db), current_unit: dict = Depends(get_current_control_unit)
+):
     """
     Save grouped sensor readings sent by a control unit.
 
@@ -68,20 +83,33 @@ def receive_device_data(data: DeviceData, db: Session = Depends(get_db)):
 
     Raises:
         HTTPException 400: For unexpected errors.
+        HTTPException 403: If control unit ID doesn't match token.
         HTTPException 500: For database errors.
-
-    Responses:
-        201 Created: Successfully saved readings.
-        400 Bad Request: Unexpected input error.
-        500 Internal Server Error: Database failure.
     """
+
+    try:
+        token_unit_id = UUID(current_unit["unit_id"])
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid control unit ID in token",
+        )
+
+    if data.control_unit_id != token_unit_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Control unit ID does not match token",
+        )
+
     try:
         save_device_data(data, db)
         total_readings = sum(len(group.sensor_units) for group in data.timestamp_groups)
         return {"status": "ok", "saved": total_readings}
+
     except SQLAlchemyError as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Unexpected error: {str(e)}")
 
