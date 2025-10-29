@@ -5,7 +5,6 @@ import uuid
 
 
 CONTROL_UNIT_SECRET_KEY = os.getenv("CONTROL_UNIT_SECRET_KEY")
-# CONTROL_UNIT_SECRET_KEY = "z5xeYgo45+JiSZPxBl6hA7NLUc45gp1qpxXZpWqyGgYaTaY3TIVZ46bomXXVzqIV/eIoThwiZsXoIEYg3mdENQ=="
 ALGORITHM = "HS256"
 
 mock_unit_id = str(uuid.uuid4())
