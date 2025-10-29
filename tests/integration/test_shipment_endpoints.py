@@ -274,3 +274,62 @@ def test_update_all_fields_not_found(admin_headers):
         headers=admin_headers
     )
     assert response.status_code == 404
+
+def test_list_all_shipments_with_latest_values_admin_only(admin_headers):
+    """
+    Purpose: Test listing all shipments with latest humidity and temperature (admin-only).
+    Scenario: Admin calls GET /shipments/all.
+    Expected: Response 200 and a list (can be empty if no shipments exist).
+    """
+    response = client.get("/api/v1/shipments/all", headers=admin_headers)
+    assert response.status_code == 200
+    assert isinstance(response.json(), list)
+
+def test_get_shipment_with_latest_values(admin_headers, shipment_payload):
+    """
+    Purpose: Test fetching a specific shipment with latest humidity and temperature.
+    Scenario: Admin creates a shipment, then fetches it via /all/{id}.
+    Expected: Response 200 and shipment data matches the created shipment.
+    """
+    # Create shipment
+    create_resp = client.post(
+        "/api/v1/shipments",
+        json={**shipment_payload,
+              "sender_id": str(shipment_payload["sender_id"]),
+              "receiver_id": str(shipment_payload["receiver_id"])},
+        headers=admin_headers,
+    )
+    shipment_id = create_resp.json()["id"]
+
+    # Fetch with latest values
+    response = client.get(f"/api/v1/shipments/all/{shipment_id}", headers=admin_headers)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["id"] == shipment_id
+
+def test_list_all_shipments_with_latest_values_unauthorized(auth_headers):
+    """
+    Purpose: Ensure non-admin users cannot access /shipments/all.
+    Expected: Response 403 Forbidden.
+    """
+    response = client.get("/api/v1/shipments/all", headers=auth_headers)
+    assert response.status_code == 403
+
+def test_fetch_current_users_shipments_with_latest_values_empty(customer_headers):
+    """
+    Purpose: Ensure user without shipments gets an empty list from /me/all.
+    Expected: Response 200 and [].
+    """
+    headers, _ = customer_headers
+    response = client.get("/api/v1/shipments/me/all", headers=headers)
+    assert response.status_code == 200
+    assert response.json() == []
+
+def test_get_shipment_with_latest_values_not_found(admin_headers):
+    """
+    Purpose: Ensure /all/{id} returns 404 for non-existent shipment.
+    Expected: Response 404 Not Found.
+    """
+    response = client.get(f"/api/v1/shipments/all/{uuid4()}", headers=admin_headers)
+    assert response.status_code == 404
+
