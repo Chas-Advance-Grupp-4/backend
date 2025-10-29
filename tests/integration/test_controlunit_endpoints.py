@@ -8,6 +8,8 @@ from app.config.settings import settings
 
 client = TestClient(app)
 
+CONTROL_UNIT_ID = "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+SENSOR_UNIT_ID = "550e8400-e29b-41d4-a716-446655440000"
 # -------------------------
 # Fixtures
 # -------------------------
@@ -15,6 +17,9 @@ client = TestClient(app)
 
 @pytest.fixture
 def control_unit_token_and_id():
+    """
+    Provides a JWT token and control_unit_id for testing.
+    """
     unit_id = str(uuid4())
     payload = {
         "unit_id": unit_id,
@@ -65,7 +70,7 @@ def device_data_payload(control_unit_token_and_id):
     """
     _, unit_id = control_unit_token_and_id
     return {
-        "control_unit_id": unit_id,  
+        "control_unit_id": unit_id,
         "timestamp_groups": [
             {
                 "timestamp": int(datetime.now(timezone.utc).timestamp()),
@@ -78,12 +83,106 @@ def device_data_payload(control_unit_token_and_id):
     }
 
 
-# -------------------------
-# Integration tests
-# -------------------------
+@pytest.fixture
+def control_unit_token_and_id_hardcoded():
+    """
+    Provides a JWT token and hardcoded control_unit_id for testing.
+    """
+    unit_id = CONTROL_UNIT_ID
+    payload = {
+        "unit_id": unit_id,
+        "exp": datetime.now(timezone.utc) + timedelta(minutes=30),
+    }
+    token = jwt.encode(payload, settings.CONTROL_UNIT_SECRET_KEY, algorithm=settings.ALGORITHM)
+    return token, unit_id
+
+
+@pytest.fixture
+def shipment_payload(admin_headers_fixture):
+    """
+    Provides a shipment payload for testing. Updates the created shipment to link a sensor unit.
+    """
+    payload = {
+        "shipment_number": f"Package-{uuid4()}",
+        "sender_id": str(uuid4()),
+        "receiver_id": str(uuid4()),
+        "driver_id": None,
+        "status": "in_transit",
+        "min_temp": -15,
+        "max_temp": 20,
+        "min_humidity": 20,
+        "max_humidity": 80,
+        "delivery_address": "Delivery 1, 34456 Test City",
+        "pickup_address": "Pickup 1, 34456 Test City"
+    }
+    resp = client.post("/api/v1/shipments/", json=payload, headers=admin_headers_fixture)
+    assert resp.status_code == 200
+    shipment = resp.json()
+    update_payload = {"sensor_unit_id": SENSOR_UNIT_ID}
+    resp = client.patch(f"/api/v1/shipments/update-all/{shipment['id']}", json=update_payload, headers=admin_headers_fixture)
+    assert resp.status_code == 200
+    shipment = resp.json()
+    assert shipment["sensor_unit_id"] == SENSOR_UNIT_ID
+    return shipment
+
+
+def test_control_unit_status(control_unit_token_and_id_hardcoded, shipment_payload):
+    """
+    Purpose: Test that /control-unit/status returns the correct sensor_unit_id and status for a shipment.
+    Scenario: A shipment with a linked sensor unit is connected to control_unit which has a valid token.
+    Expected: Response 200 with correct sensor_unit_id and status.
+    """
+    token, _ = control_unit_token_and_id_hardcoded
+    headers = {"Authorization": f"Bearer {token}"}
+
+    status_resp = client.post(
+        "/api/v1/control-unit/status",
+        params={"control_unit_id": CONTROL_UNIT_ID},
+        headers=headers
+    )
+    assert status_resp.status_code == 200
+    data = status_resp.json()
+    assert data["sensor_unit_id"] == SENSOR_UNIT_ID
+    assert data["status"] == "in_transit"
+
+
+def test_control_unit_status_wrong_token():
+    """
+    Purpose: Test that /control-unit/status returns 401 for an invalid token.
+    Scenario: An invalid JWT token is provided.
+    Expected: Response 401 Unauthorized.
+    """
+    headers = {"Authorization": "Bearer INVALIDTOKEN"}
+    resp = client.post(
+        "/api/v1/control-unit/status",
+        params={"control_unit_id": CONTROL_UNIT_ID},
+        headers=headers
+    )
+    assert resp.status_code == 401
+
+
+def test_control_unit_status_wrong_control_unit_id(control_unit_token_and_id):
+    """
+    Purpose: Test that /control-unit/status returns 403 for a control_unit_id not matching the token.
+    Scenario: A valid JWT token is provided but with a mismatched control_unit_id.
+    Expected: Response 403 Forbidden.
+    """
+    token, _ = control_unit_token_and_id
+    headers = {"Authorization": f"Bearer {token}"}
+    resp = client.post(
+        "/api/v1/control-unit/status",
+        params={"control_unit_id": "00000000-0000-0000-0000-000000000000"},
+        headers=headers
+    )
+    assert resp.status_code == 403
 
 
 def test_post_single_reading(single_reading_payload, control_unit_token_and_id):
+    """
+    Purpose: Test posting a single reading via POST /control-unit/single-reading.
+    Scenario: A valid JWT token and matching control_unit_id are provided.
+    Expected: Response 201 Created with the created reading ID.
+    """
     token, _ = control_unit_token_and_id
     headers = {"Authorization": f"Bearer {token}"}
     resp = client.post(
@@ -98,6 +197,12 @@ def test_post_single_reading(single_reading_payload, control_unit_token_and_id):
 
 
 def test_post_grouped_device_data(device_data_payload, control_unit_token_and_id):
+
+    """
+    Purpose: Test posting grouped device data via POST /control-unit.
+    Scenario: A valid JWT token and matching control_unit_id are provided.
+    Expected: Response 201 Created with the number of created readings.
+    """
     token, _ = control_unit_token_and_id
     headers = {"Authorization": f"Bearer {token}"}
     resp = client.post(
