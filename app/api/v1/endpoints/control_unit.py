@@ -21,9 +21,8 @@ from app.services.control_unit_service import (
 )
 
 CONTROL_UNIT_SENSOR_ID_MAP = {
-    UUID("f47ac10b-58cc-4372-a567-0e02b2c3d479"): UUID(  # Control Unit Id who is making the request
-        "550e8400-e29b-41d4-a716-446655440000"
-    )  # Sensor Unit id 1 who is connected to the Control Unit
+    UUID("f47ac10b-58cc-4372-a567-0e02b2c3d479"): # Control Unit Id who is making the request
+    UUID("550e8400-e29b-41d4-a716-446655440000")  # Sensor Unit id 1 who is connected to the Control Unit
 }
 
 router = APIRouter()
