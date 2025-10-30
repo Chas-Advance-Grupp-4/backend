@@ -5,7 +5,6 @@ from app.api.v1.schemas.control_unit_schema import (
     ControlUnitDataBase,
     ControlUnitDataCreate,
     ControlUnitDataUpdate,
-    ControlUnitDataRead,
     DeviceData,
     TimestampGroup,
     SensorUnitReading,
@@ -24,7 +23,11 @@ def test_control_unit_base_valid():
     Expected: Object created successfully; humidity and temperature values match input.
     """
     data = ControlUnitDataBase(
-        sensor_unit_id=uuid4(), control_unit_id=uuid4(), humidity={"value": 50}, temperature={"value": 25}, timestamp=datetime.now()
+        sensor_unit_id=uuid4(),
+        control_unit_id=uuid4(),
+        humidity={"value": 50},
+        temperature={"value": 25},
+        timestamp=datetime.now()
     )
     assert data.humidity["value"] == 50
     assert data.temperature["value"] == 25
@@ -37,7 +40,11 @@ def test_control_unit_base_invalid_empty_dict():
     Expected: Pydantic ValidationError is raised.
     """
     with pytest.raises(ValidationError):
-        ControlUnitDataBase(sensor_unit_id=uuid4(), control_unit_id=uuid4(), humidity={}, temperature={})
+        ControlUnitDataBase(
+            sensor_unit_id=uuid4(),
+            control_unit_id=uuid4(),
+            humidity={}, temperature={}
+        )
 
 
 def test_control_unit_create():
@@ -46,7 +53,12 @@ def test_control_unit_create():
     Scenario: Provide valid sensor_unit_id, control_unit_id, humidity, temperature.
     Expected: Object created successfully; humidity and temperature values match input.
     """
-    create_data = ControlUnitDataCreate(sensor_unit_id=uuid4(), control_unit_id=uuid4(), humidity={"value": 55}, temperature={"value": 22})
+    create_data = ControlUnitDataCreate(
+        sensor_unit_id=uuid4(),
+        control_unit_id=uuid4(),
+        humidity={"value": 55},
+        temperature={"value": 22}
+    )
     assert create_data.humidity["value"] == 55
     assert create_data.temperature["value"] == 22
 
