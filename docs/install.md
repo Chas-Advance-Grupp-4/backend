@@ -1,7 +1,4 @@
 
----
-
-````markdown
 # Local Installation – Backend
 
 This guide explains how to set up and run the **Chas Advance backend** locally for development or testing.
@@ -83,7 +80,7 @@ API will be available at [http://localhost:8000](http://localhost:8000).
 Pull the latest dev image:
 
 ```bash
-docker pull chasadvancegroup4/chas_advance_backend:dev
+docker pull chasadvancegroup4/chas_advance_backend:latest
 ```
 
 Run the container:
@@ -93,7 +90,7 @@ docker run -d \
   --name backend_local \
   -p 8000:8000 \
   --env-file .env \
-  chasadvancegroup4/chas_advance_backend:dev
+  chasadvancegroup4/chas_advance_backend:latest
 ```
 
 Stop and remove the container when done:
