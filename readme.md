@@ -9,7 +9,6 @@ The backend handles data management, authentication, sensor communication, vehic
 
 ```
 
-.
 ├── alembic.ini
 ├── app/                     # FastAPI application
 ├── Dockerfile
@@ -18,7 +17,6 @@ The backend handles data management, authentication, sensor communication, vehic
 ├── tests/                   # Unit and integration tests
 ├── VERSION                  # Project version file
 └── readme.md
-.
 
 ````
 
