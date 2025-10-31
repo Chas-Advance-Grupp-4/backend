@@ -1,7 +1,3 @@
-
----
-
-````markdown
 # Azure Backend Server Guide – Team 4
 
 This document explains how our **FastAPI backend** is deployed and managed in **Azure App Service** using **Docker containers**.  
