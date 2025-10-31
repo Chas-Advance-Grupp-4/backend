@@ -14,7 +14,8 @@ The pipeline automates tests, Docker image builds, health checks, and deployment
 - Run backend tests automatically on pushes to **develop** or **main**.  
 - Build Docker images for **AMD64** and **ARM64** architectures.  
 - Test Docker images using a health check before pushing.  
-- Push multi-architecture Docker images to Docker Hub if tests pass.  
+- Push multi-architecture Docker images to Docker Hub if tests pass.
+- Update Azure with latest Docker image
 - Ensure consistent and reproducible environments between local development and CI.
 
 ---
