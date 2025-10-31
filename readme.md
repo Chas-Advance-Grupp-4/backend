@@ -48,16 +48,16 @@ We maintain **latest dev and main images** on Docker Hub:
 
 - Repository: [chasadvancegroup4/chas_advance_backend](https://hub.docker.com/repository/docker/chasadvancegroup4/chas_advance_backend/general)
 
-```bash
 Develop images always have same major tag as main, with updates on minor. To get precised version, check version file in github to download correct image.  
-Develop images also gets pushed with latest tag, so if you want the latest image published go with latest tag. 
-
+Develop images also gets pushed with latest tag, so if you want the latest image published go with latest tag.
+```bash 
 # Pull latest dev image
 docker pull chasadvancegroup4/chas_advance_backend:latest  
 docker pull chasadvancegroup/chas_advance_backend:2.5  2.10 ...   
+````
 
 Main images always have tag major.0, to use the latest, check version file in github and use major number.0.  
-
+```bash
 # Pull latest main image  
 docker pull chasadvancegroup4/chas_advance_backend:2.0   3.0 ...  
 ````
