@@ -2,7 +2,6 @@
 
 **Filenamn:** `docs/running_backend_locally.md`
 
-````markdown
 # Running the Backend Docker Container Locally
 
 This guide explains how to run the backend Docker container on your local machine for development and testing.
