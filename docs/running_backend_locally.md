@@ -170,5 +170,4 @@ docker rm backend_local
 * Container is not in reload mode; restart after code changes.
 * Use health endpoint to ensure startup is correct.
 
-```
 

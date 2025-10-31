@@ -155,8 +155,3 @@ Expected response:
 ```json
 {"status": "ok", "message": "API is running"}
 ```
-
----
-
-```
-

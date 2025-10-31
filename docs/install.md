@@ -127,5 +127,5 @@ pytest --cov=app --cov-report=term-missing
 * The `.env` file should never be committed to GitHub.
 * If you make code changes, you need to restart the Docker container unless running via `uvicorn --reload`.
 
-```
+
 

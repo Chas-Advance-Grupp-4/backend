@@ -105,5 +105,3 @@ Detailed documentation is stored in the [`docs/`](docs/) folder:
 * Extend docstrings and Doxygen comments for all services and models.
 * Introduce stricter rate limiting and advanced authentication flows.
 * Introduce environment-specific configs for staging and production.
-
-```
