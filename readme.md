@@ -52,11 +52,15 @@ We maintain **latest dev and main images** on Docker Hub:
 - Repository: [chasadvancegroup4/chas_advance_backend](https://hub.docker.com/repository/docker/chasadvancegroup4/chas_advance_backend/general)
 
 ```bash
+Develop images always have same major tag as main, with updates on minor. To get precised version, check version file in github to download correct image.  
+Develop images also gets pushed with latest tag, so if you want the latest image published go with latest tag. 
 # Pull latest dev image
-docker pull chasadvancegroup4/chas_advance_backend:dev
+docker pull chasadvancegroup4/chas_advance_backend:latest  
+docker pull chasadvancegroup/chas_advance_backend:2.5  2.10 ...   
 
-# Pull latest main image
-docker pull chasadvancegroup4/chas_advance_backend:main
+Main images always have tag major.0, to use the latest, check version file in github and use major number.0.  
+# Pull latest main image  
+docker pull chasadvancegroup4/chas_advance_backend:2.0   3.0 ...  
 ````
 
 ---
@@ -105,3 +109,6 @@ Detailed documentation is stored in the [`docs/`](docs/) folder:
 * Extend docstrings and Doxygen comments for all services and models.
 * Introduce stricter rate limiting and advanced authentication flows.
 * Introduce environment-specific configs for staging and production.
+* Refactor control unit architecture to support multiple sensor units dynamically instead of hardcoded connections.
+* Extend data model and backend APIs to handle GPS data and other future sensor types.
+* Refactor backend towards a more modular microservice architecture for improved scalability and maintainability.
