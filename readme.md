@@ -1,12 +1,10 @@
 
-```markdown
 # Chas Advance – Backend
 
 This repository contains the **backend service** for **Chas Advance**, a logistics platform enabling climate-controlled and fully traceable delivery of specialized goods.  
 The backend handles data management, authentication, sensor communication, vehicle integration, and provides REST APIs for both the frontend and IoT systems.
 
 ---
-
 ## Repository Structure (Top-Level)
 
 ```
@@ -20,6 +18,7 @@ The backend handles data management, authentication, sensor communication, vehic
 ├── tests/                   # Unit and integration tests
 ├── VERSION                  # Project version file
 └── readme.md
+.
 
 ````
 
@@ -54,11 +53,13 @@ We maintain **latest dev and main images** on Docker Hub:
 ```bash
 Develop images always have same major tag as main, with updates on minor. To get precised version, check version file in github to download correct image.  
 Develop images also gets pushed with latest tag, so if you want the latest image published go with latest tag. 
+
 # Pull latest dev image
 docker pull chasadvancegroup4/chas_advance_backend:latest  
 docker pull chasadvancegroup/chas_advance_backend:2.5  2.10 ...   
 
 Main images always have tag major.0, to use the latest, check version file in github and use major number.0.  
+
 # Pull latest main image  
 docker pull chasadvancegroup4/chas_advance_backend:2.0   3.0 ...  
 ````
@@ -112,3 +113,4 @@ Detailed documentation is stored in the [`docs/`](docs/) folder:
 * Refactor control unit architecture to support multiple sensor units dynamically instead of hardcoded connections.
 * Extend data model and backend APIs to handle GPS data and other future sensor types.
 * Refactor backend towards a more modular microservice architecture for improved scalability and maintainability.
+* Refactor backend so all endpoints are secured behind login authorization and delete unused endpoints
