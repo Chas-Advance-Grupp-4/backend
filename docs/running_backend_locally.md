@@ -104,6 +104,7 @@ DATABASE_URL=<your-database-url>
 SECRET_KEY=<your-secret-key>
 ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=30
+CONTROL_UNIT_SECRET_KEY=<your-secret-key-for-control-unit>
 ENV=development
 FRONTEND_URL=<frontend-url>
 ````
