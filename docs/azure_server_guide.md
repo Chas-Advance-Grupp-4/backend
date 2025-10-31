@@ -1,8 +1,10 @@
-# Azure Backend Server Guide — Team 4
 
-## Overview
+---
 
-This document explains how our **FastAPI backend** is deployed and managed in **Azure App Service** using **Docker containers**.
+````markdown
+# Azure Backend Server Guide – Team 4
+
+This document explains how our **FastAPI backend** is deployed and managed in **Azure App Service** using **Docker containers**.  
 It includes how to run, update, and troubleshoot the development server.
 
 ---
@@ -11,21 +13,21 @@ It includes how to run, update, and troubleshoot the development server.
 
 To manage the server, make sure you have:
 
-* **Azure CLI** installed
-     [Install guide](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli)
-* Access to our **Azure subscription**
-* **Docker Hub** credentials for `chasadvancegroup4`
-* Access to:
+- **Azure CLI** installed  
+  [Install guide](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli)  
+- Access to our **Azure subscription**  
+- **Docker Hub** credentials for `chasadvancegroup4`  
+- Access to:
 
-  * **Resource group:** `team_4`
-  * **Web App name:** `grupp4AWA`
+  - **Resource group:** `team_4`  
+  - **Web App name:** `grupp4AWA`  
 
-Login once in Azure:
+Login to Azure:
 
 ```bash
 az login
 az account set --subscription "Chas Academy Team 4"
-```
+````
 
 ---
 
@@ -46,7 +48,7 @@ Docker Hub → Azure App Service (Web App for Containers) → FastAPI (via Uvico
 uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
 
-Azure listens to port **8000** automatically because of:
+Azure listens to port **8000** automatically due to:
 
 ```
 WEBSITES_PORT=8000
@@ -56,20 +58,16 @@ WEBSITES_PORT=8000
 
 ## Continuous Deployment (CD)
 
-We have **Continuous Deployment** enabled between **Docker Hub** and **Azure**.
+We have **Continuous Deployment** enabled between **Docker Hub** and **Azure**:
 
-That means:
+* Whenever a new image is pushed to Docker Hub (same tag, e.g., `latest`)
+* → Azure automatically pulls the image and restarts the container.
 
-* Whenever a new image is pushed to Docker Hub with the same tag (e.g.,`2.1`,`latest`)
-* → Azure automatically pulls that image and restarts the container.
-* We are currently using the latest tag, but when we move to production we will use the correct version
-
+Currently, `latest` is used for development. Production will use specific version tags.
 
 ---
 
 ## Manual Commands
-
-If you need to control the app manually from your terminal:
 
 ### Restart the app
 
@@ -83,7 +81,7 @@ az webapp restart -g team_4 -n grupp4AWA
 az webapp log tail -g team_4 -n grupp4AWA
 ```
 
-### Check which image is currently running
+### Check running image
 
 ```bash
 az webapp config container show -g team_4 -n grupp4AWA
@@ -91,15 +89,15 @@ az webapp config container show -g team_4 -n grupp4AWA
 
 ---
 
-## 🧱 Environment Variables
+## Environment Variables
 
-To **list** all app settings:
+List all app settings:
 
 ```bash
 az webapp config appsettings list -g team_4 -n grupp4AWA
 ```
 
-To **set or update** a variable:
+Set or update variables:
 
 ```bash
 az webapp config appsettings set \
@@ -113,49 +111,40 @@ Common variables:
 | Variable       | Description                     |
 | -------------- | ------------------------------- |
 | `DATABASE_URL` | Connection string to PostgreSQL |
-| `FRONTEND_URL` | Used for environment logic      |
+| `FRONTEND_URL` | Frontend base URL               |
 | `ENV`          | `development` or `production`   |
 
 ---
 
-## 🧭 Server Runtime Guidelines
+## Server Runtime Guidelines
 
-Azure App Service is designed to **keep your app running continuously**.
-You normally don’t need to start or stop it manually — it automatically handles restarts, scaling, and deployment updates.
+| Situation                     | Action                                        |
+| ----------------------------- | --------------------------------------------- |
+| Push a new Docker image       | Nothing – Azure redeploys automatically       |
+| App doesn’t update after push | Run `az webapp restart`                       |
+| Test a different version      | Change image tag in Azure or push another tag |
+| Stop temporarily              | Use “Stop” button in Azure Portal             |
 
-Here’s how to handle it in our workflow:
-
-| Situation                                 | What to Do                                             | Notes                                                      |
-| ----------------------------------------- | ------------------------------------------------------ | ---------------------------------------------------------- |
-| You push a new Docker image to Docker Hub |  Nothing more to do                                   | Azure automatically redeploys                              |
-| The app doesn’t update after a push       |  Run `az webapp restart`                             | Forces container reload                                    |
-| You need to test a different version      |  Change image tag in Azure or push under another tag | Good for staging/testing                                   |
-| You’re done with testing                  |  Leave it running                                    | Azure pauses inactive apps automatically (no cost for CPU) |
-| You need to stop it temporarily           |  Use the “Stop” button in the Azure Portal           | Not required during normal dev                             |
-
-**Summary:**
-
-> Treat Azure as a “always-on dev server.”
-> Just push new images — Azure will handle uptime, HTTPS, and automatic restarts.
+> Treat Azure as a “always-on dev server.” Push images → Azure handles deployment.
 
 ---
 
-##  Security
+## Security
 
 Azure automatically manages:
 
 * HTTPS certificates and SSL renewal
 * Load balancing
-* Port exposure (`8000` only)
+* Port exposure (`8000`)
 * Isolation between apps
 
-You don’t need to set up Nginx or handle certificates manually — it’s all managed by Azure App Service.
+No need for manual Nginx or SSL setup.
 
 ---
 
-## Useful Health Check
+## Health Check
 
-To verify the API is live:
+Verify the API is live:
 
 ```bash
 curl https://grupp4awa.azurewebsites.net/health
@@ -169,6 +158,6 @@ Expected response:
 
 ---
 
-**In short:**
+```
 
-> Build → Push to Docker Hub → Azure auto-deploys → App restarts → Ready to test.
+---
