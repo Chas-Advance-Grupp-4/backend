@@ -83,4 +83,4 @@ The pipeline automates tests, Docker image builds, health checks, and deployment
 - Docker images for `develop` and `main` are independent and pushed with separate tags  
 ```
 
----
+

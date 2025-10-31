@@ -107,5 +107,3 @@ Detailed documentation is stored in the [`docs/`](docs/) folder:
 * Introduce environment-specific configs for staging and production.
 
 ```
-
----
