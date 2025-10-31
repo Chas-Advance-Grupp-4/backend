@@ -54,6 +54,10 @@ This document describes the **GitHub Actions workflow** for the backend. It auto
 - `develop` tagged with VERSION + `latest`.
 - `main` tagged with VERSION.
 
+### 5. Update image version on Azure
+- Login to Azure (credentials stored in Github Secrets).
+- Update Azure Web App so it runs the latest docker image
+
 ## Environment Variables & Secrets
 
 - `TEST_DB_USER`, `TEST_DB_PASSWORD`, `TEST_DB_NAME`, `TEST_DB_PORT` – temporary test database.
