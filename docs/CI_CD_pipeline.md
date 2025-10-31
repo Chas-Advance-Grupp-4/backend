@@ -55,6 +55,10 @@ The pipeline automates tests, Docker image builds, health checks, and deployment
 - `develop` branch → tagged with version and `latest`  
 - `main` branch → tagged with version only
 
+### 5. Update image version on Azure
+- Login to Azure (credentials stored in Github Secrets).
+- Update Azure Web App so it runs the latest docker image
+
 ---
 
 ## Environment Variables & Secrets
