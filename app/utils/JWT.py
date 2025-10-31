@@ -44,7 +44,7 @@ def decode_access_token(token: str) -> dict | None:
         dict | None: The decoded payload if valid; None if the token is invalid or expired.
     """
     try:
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM.strip()])
         return payload
     except PyJWTError:
         return None
@@ -61,7 +61,7 @@ def decode_control_unit_secret_key(token: str) -> dict | None:
         dict | None: The decoded payload if valid; None if the token is invalid or expired.
     """
     try:
-        payload = jwt.decode(token, settings.CONTROL_UNIT_SECRET_KEY, algorithms=[settings.ALGORITHM])
+        payload = jwt.decode(token, settings.CONTROL_UNIT_SECRET_KEY, algorithms=[settings.ALGORITHM.strip()])
         return payload
     except PyJWTError:
         return None
