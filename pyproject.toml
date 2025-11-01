@@ -1,3 +1,27 @@
+[project]
+name = "cag4-backend"
+version = "0.1.4"
+description = ""
+authors = []
+readme = "app/README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "alembic>=1.17.0",
+    "bcrypt==4.3.0",
+    "fastapi[standard]>=0.119.0",
+    "passlib[bcrypt]>=1.7.4",
+    "psycopg[binary]>=3.2.10",
+    "pydantic>=2.12.2",
+    "pydantic-settings>=2.11.0",
+    "pyjwt>=2.10.1",
+]
+
+[dependency-groups]
+dev = [
+    "alembic>=1.17.0",
+    "python-dotenv>=1.1.1",
+]
+
 # line length settings for black
 [tool.black]
 line-length = 125
