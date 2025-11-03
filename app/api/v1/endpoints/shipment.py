@@ -224,13 +224,13 @@ async def get_shipment_with_latest_values(shipment_id: UUID, db: DbSession):
     return shipment
 
 
-@router.patch("/{shipment_id}", response_model=ShipmentRead, summary="Update shipment (admin only)")
+@router.patch("/{shipment_id}", response_model=ShipmentRead, summary="Update shipment (All roles)")
 async def update_shipment(
     shipment_id: UUID,
     driver_id: UUID | None = None,
     status: ShipmentStatus | None = None,
     db: DbSession = DbSession,
-    _: AdminOnly = AdminOnly,
+    _: None = Depends(require_roles(["customer", "admin", "driver"])),
 ):
     """
     Update an existing shipment's driver assignment.
@@ -240,7 +240,7 @@ async def update_shipment(
         driver_id (UUID | None): Optional driver UUID to assign.
         status (ShipmentStatus | None): Optional new status for the shipment.
         db (DbSession): Database session dependency.
-        _ (None): Dummy dependency to enforce admin-only access.
+        _ (None): Dummy dependency to enforce customer/admin/driver-only access.
 
     Returns:
         ShipmentRead: The updated shipment object.
