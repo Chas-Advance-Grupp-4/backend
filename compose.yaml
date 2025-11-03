@@ -1,0 +1,32 @@
+# Note: this is a starting point for a local setup.
+#
+# It's possible to add more services and even run FastAPI in dev mode combined with
+# Docker Compose watch, see - https://docs.docker.com/compose/how-tos/file-watch/
+#
+# Should it ever be used for a production environment the POSTGRES_PASSWORD must not be hard
+# coded like this.
+services:
+  postgres:
+    # Adapt to whatever Postgres version is needed
+    # If <18 make sure to read the docs - https://hub.docker.com/_/postgres -
+    # since the storage path for PGDATA changed in v18.
+    image: postgres:18-bookworm
+    ports:
+      - "5432:5432" # Exposes the service on localhost
+    environment:
+      POSTGRES_USER: cag4
+      POSTGRES_PASSWORD: cag4
+      PGDATA: /var/lib/postgresql/18/docker
+    volumes:
+      - postgresdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "cag4"]
+      interval: 1s
+      timeout: 5s
+      retries: 10
+    logging:
+      # Disable logging, if removed make sure logrotation is set up.
+      driver: none
+
+volumes:
+  postgresdata: # A named Docker volume for persisting data
