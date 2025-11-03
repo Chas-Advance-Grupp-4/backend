@@ -124,3 +124,14 @@ class DeviceData(BaseModel):
 
     control_unit_id: UUID
     timestamp_groups: List[TimestampGroup] = []
+
+
+class ControlUnitStatusRequest(BaseModel):
+    """
+    Represents the control_unit_id request for status checking.
+
+    Attributes:
+        control_unit_id (UUID): The unique ID of the control unit.
+    """
+
+    control_unit_id: UUID

@@ -36,6 +36,7 @@ docker run -d --name backend_test --network ci_network -p 8000:8000 \
   -e DATABASE_URL="postgresql+psycopg://${TEST_DB_USER}:${TEST_DB_PASSWORD}@ci_postgres:5432/${TEST_DB_NAME}" \
   -e SECRET_KEY="${SECRET_KEY_TEST}" \
   -e ACCESS_TOKEN_EXPIRE_MINUTES=30 \
+  -e CONTROL_UNIT_SECRET_KEY="${CONTROL_UNIT_SECRET_KEY}" \
   $IMAGE_NAME
 
 # Vänta lite

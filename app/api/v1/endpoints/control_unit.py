@@ -3,11 +3,14 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 from uuid import UUID
 from app.dependencies import get_db
+from app.dependencies import get_current_control_unit
+from app.models.shipment_model import Shipment
 from app.api.v1.schemas.control_unit_schema import (
     DeviceData,
     ControlUnitDataCreate,
     ControlUnitDataUpdate,
     ControlUnitDataRead,
+    ControlUnitStatusRequest,
 )
 from app.services.control_unit_service import (
     save_device_data,
@@ -18,7 +21,12 @@ from app.services.control_unit_service import (
     delete_control_unit_data,
 )
 
-router = APIRouter(tags=["Control Unit Data"])
+CONTROL_UNIT_SENSOR_ID_MAP = {
+    UUID("f47ac10b-58cc-4372-a567-0e02b2c3d479"): UUID("550e8400-e29b-41d4-a716-446655440000")
+    # Control Unit Id who is making the request : Sensor Unit Id assigned to the Control Unit
+}
+
+router = APIRouter()
 
 
 @router.post(
@@ -27,7 +35,9 @@ router = APIRouter(tags=["Control Unit Data"])
     status_code=status.HTTP_201_CREATED,
     summary="Create a single control unit reading (for testing only)",
 )
-def create(data: ControlUnitDataCreate, db: Session = Depends(get_db)):
+def create(
+    data: ControlUnitDataCreate, db: Session = Depends(get_db), current_unit: dict = Depends(get_current_control_unit)
+):
     """
     Create a single control unit reading in the database.
 
@@ -40,13 +50,23 @@ def create(data: ControlUnitDataCreate, db: Session = Depends(get_db)):
 
     Raises:
         HTTPException 400: If validation fails.
+        HTTPException 403: If control unit ID in body doesn't match token.
         HTTPException 500: On database errors.
-
-    Responses:
-        201 Created: Successfully created reading.
-        400 Bad Request: Invalid input.
-        500 Internal Server Error: Database failure.
     """
+    try:
+        token_unit_id = UUID(current_unit["unit_id"])
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid control unit ID in token",
+        )
+
+    if data.control_unit_id != token_unit_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Control unit ID does not match token",
+        )
+
     return create_control_unit_data(db, data)
 
 
@@ -55,7 +75,9 @@ def create(data: ControlUnitDataCreate, db: Session = Depends(get_db)):
     status_code=status.HTTP_201_CREATED,
     summary="Receive grouped readings from a control unit",
 )
-def receive_device_data(data: DeviceData, db: Session = Depends(get_db)):
+def receive_device_data(
+    data: DeviceData, db: Session = Depends(get_db), current_unit: dict = Depends(get_current_control_unit)
+):
     """
     Save grouped sensor readings sent by a control unit.
 
@@ -68,22 +90,84 @@ def receive_device_data(data: DeviceData, db: Session = Depends(get_db)):
 
     Raises:
         HTTPException 400: For unexpected errors.
+        HTTPException 403: If control unit ID doesn't match token.
         HTTPException 500: For database errors.
-
-    Responses:
-        201 Created: Successfully saved readings.
-        400 Bad Request: Unexpected input error.
-        500 Internal Server Error: Database failure.
     """
+
+    try:
+        token_unit_id = UUID(current_unit["unit_id"])
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid control unit ID in token",
+        )
+
+    if data.control_unit_id != token_unit_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Control unit ID does not match token",
+        )
+
     try:
         save_device_data(data, db)
         total_readings = sum(len(group.sensor_units) for group in data.timestamp_groups)
         return {"status": "ok", "saved": total_readings}
+
     except SQLAlchemyError as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Unexpected error: {str(e)}")
+
+
+@router.post("/status", summary="Return sensor unit and shipment status for given control unit.")
+def control_unit_status(
+    request: ControlUnitStatusRequest, db: Session = Depends(get_db), current_unit: dict = Depends(get_current_control_unit)
+):
+    """
+    Retrieve the sensor unit ID and shipment status for a given control unit.
+
+    Args:
+        control_unit_id (UUID): The unique ID of the control unit.
+        db (Session): Database session dependency.
+        current_unit (dict): The current control unit info from the token.
+    Returns:
+        dict: The sensor unit ID and shipment status, if found and status is in_transit or delivered.
+        None: If shipment status is not in_transit or delivered.
+    Raises:
+        HTTPException 400: If control unit ID in token is invalid.
+        HTTPException 403: If control unit ID doesn't match token.
+        HTTPException 404: If control unit or shipment not found.
+    """
+    try:
+        token_unit_id = UUID(current_unit["unit_id"])
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid control unit ID in token",
+        )
+
+    control_unit_id = request.control_unit_id
+
+    if control_unit_id != token_unit_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Could not validate control_unit_id",
+        )
+
+    if control_unit_id not in CONTROL_UNIT_SENSOR_ID_MAP:
+        raise HTTPException(status_code=404, detail="control_unit_id not found")
+
+    sensor_unit_id = CONTROL_UNIT_SENSOR_ID_MAP[control_unit_id]
+    shipment = db.query(Shipment).filter(Shipment.sensor_unit_id == sensor_unit_id).first()
+    if not shipment:
+        raise HTTPException(status_code=404, detail="No shipment found for the sensor_unit_id")
+
+    if shipment.status.value not in ["in_transit", "delivered"]:
+        return None
+
+    return {"sensor_unit_id": str(shipment.sensor_unit_id), "status": shipment.status.value}
 
 
 @router.get(

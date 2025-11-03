@@ -5,7 +5,6 @@ from app.api.v1.schemas.control_unit_schema import (
     ControlUnitDataBase,
     ControlUnitDataCreate,
     ControlUnitDataUpdate,
-    ControlUnitDataRead,
     DeviceData,
     TimestampGroup,
     SensorUnitReading,
@@ -15,6 +14,7 @@ from datetime import datetime
 # -----------------------------
 # Tests for ControlUnitData schemas
 # -----------------------------
+
 
 def test_control_unit_base_valid():
     """
@@ -43,8 +43,7 @@ def test_control_unit_base_invalid_empty_dict():
         ControlUnitDataBase(
             sensor_unit_id=uuid4(),
             control_unit_id=uuid4(),
-            humidity={},
-            temperature={}
+            humidity={}, temperature={}
         )
 
 
@@ -84,7 +83,7 @@ def test_device_data_structure():
     sensor = SensorUnitReading(sensor_unit_id=uuid4(), temperature=22.5, humidity=55.0)
     ts_group = TimestampGroup(timestamp=int(datetime.now().timestamp()), sensor_units=[sensor])
     device_data = DeviceData(control_unit_id=uuid4(), timestamp_groups=[ts_group])
-    
+
     # Check nested structure
     assert len(device_data.timestamp_groups) == 1
     assert len(device_data.timestamp_groups[0].sensor_units) == 1
