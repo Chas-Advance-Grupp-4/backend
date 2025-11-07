@@ -2,6 +2,10 @@
 if [ "$1" = "--version" ]; then
     echo "Backend version $APP_VERSION"
 else
+    # Only if you run the database locally!!
+    echo "Running database migrations..."
+    alembic upgrade head
+    
+    # For all running 
     echo "Starting Backend version $APP_VERSION"
     exec uvicorn app.main:app --host 0.0.0.0 --port 8000
-fi
